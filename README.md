@@ -15,6 +15,12 @@ note のワークスペースと同じように、役割ごとに専門エージ
 | 4 | `rakuten-checker` | チェック担当: PR表記・誇大表現・薬機法・価格の食い違い | `02_check.md`（原稿は書き換えない） | 原稿の書き換え |
 | 5 | `rakuten-analyst` | 分析担当: 成果レポートを記録し、次の企画を提案 | `05_analytics/` | 数字の推測・企画作成 |
 
+### ROOMの商品さがし（いちばん手軽）
+「おしゃれな上着を探して」のように言うだけで、楽天市場から商品を3つ探し、レビューを読んでまとめ、
+**ROOMで検索する商品名・紹介文・ハッシュタグ** をコピペできる形で返します（`.claude/skills/room-search/`）。
+結果は `03_posts/_search/` に保存されます。
+※楽天市場のページを開くため、環境のネットワーク設定で `search.rakuten.co.jp` `item.rakuten.co.jp` `review.rakuten.co.jp` の許可が必要です。
+
 使い方の例（Claude Code で）:
 ```
 rakuten-researcher で「キッチン収納」ジャンルの売れ筋と報酬率を調べて
