@@ -42,7 +42,8 @@ Ai-/
 │   └── next-steps.md      … 登録後にやることチェックリスト（最初に読む）
 ├── guidelines/
 │   ├── compliance.md      … PR表記・ステマ規制・薬機法・規約チェック
-│   └── post-style.md      … 媒体別の紹介文の型・文体
+│   ├── post-style.md      … 媒体別の紹介文の型・文体
+│   └── review-summary.md  … 楽天のレビューを参考にROOMの紹介文を作るしくみ
 ├── 01_research/           … リサーチメモ
 │   ├── _template.md
 │   ├── sources.md         … 情報源リスト
