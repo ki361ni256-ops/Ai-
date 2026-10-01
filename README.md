@@ -59,6 +59,9 @@ Ai-/
 │       ├── 01_draft.md    … 紹介文（媒体別）
 │       └── 02_check.md    … チェックレポート
 ├── 04_published/          … 投稿済み（03_posts から移動）
+├── スレッズ投稿/          … Threads（@takurou_kurashi）の投稿文
+│   ├── _template.md
+│   └── 投稿済み/
 └── 05_analytics/
     ├── report-log.md      … 成果レポートの記録
     └── weekly/            … 週次の振り返り
