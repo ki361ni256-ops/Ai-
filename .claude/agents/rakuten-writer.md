@@ -21,6 +21,7 @@ tools: Read, Write, Edit, Glob, Grep, WebFetch
 ## 作業前に読むもの
 - `03_posts/<投稿>/00_plan.md`
 - `guidelines/post-style.md`、`guidelines/compliance.md`
+- **Threads の投稿を書くときは `CLAUDE.md` の「Threads 投稿の書き方」（最優先）と `スレッズ投稿/普段の投稿とコメントの型.md`**。保存先は `スレッズ投稿/YYYY-MM-DD_内容.md`
 
 ## 手順
 1. `00_plan.md` の商品・切り口・媒体を確認する
