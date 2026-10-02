@@ -14,3 +14,10 @@
 | 04_published/2026-10-02_sony-2470gm2 | 楽天ROOM | SEL2470GM2（欲しいもの） | 2026-10-02 |  |  |  |  |
 | 04_published/2026-10-02_osmo-pocket4 | 楽天ROOM | DJI Osmo Pocket 4（欲しいもの） | 2026-10-02 |  |  |  |  |
 | （本人が登録・内容未共有） | 楽天ROOM | 【要記入】 | 2026-10-02 |  |  |  |  |
+| 04_published/2026-10-04_baby-monitor | 楽天ROOM | ベビーモニター | 2026-10-02ごろ |  |  |  |  |
+| 04_published/2026-10-02_revicare-recovery-wear | 楽天ROOM | Revicare リカバリーウェア | 2026-10-02 |  |  |  |  |
+| 04_published/2026-10-02_plaud-notepin | 楽天ROOM | PLAUD NotePin | 2026-10-02 |  |  |  |  |
+| 04_published/2026-10-02_shojiki-cordless-cleaner | 楽天ROOM | SHOJIKI コードレス掃除機 | 2026-10-02 |  |  |  |  |
+| （本人が登録・内容未共有） | 楽天ROOM | 【要記入】 | 2026-10-02 |  |  |  |  |
+
+- 2026-10-02 時点で ROOM の投稿は合計11個（本人申告）
