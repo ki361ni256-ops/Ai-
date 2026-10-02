@@ -13,7 +13,7 @@
 | 04_published/2026-10-02_bornelund | 楽天ROOM | ボーネルンドのおもちゃ | 2026-10-02 |  |  |  |  |
 | 04_published/2026-10-02_sony-2470gm2 | 楽天ROOM | SEL2470GM2（欲しいもの） | 2026-10-02 |  |  |  |  |
 | 04_published/2026-10-02_osmo-pocket4 | 楽天ROOM | DJI Osmo Pocket 4（欲しいもの） | 2026-10-02 |  |  |  |  |
-| （本人が登録・内容未共有） | 楽天ROOM | 【要記入】 | 2026-10-02 |  |  |  |  |
+| 04_published/2026-10-02_amani-oil | 楽天ROOM | アマニ油（新日本製薬） | 2026-10-02 |  |  |  |  |
 | 04_published/2026-10-04_baby-monitor | 楽天ROOM | ベビーモニター | 2026-10-02ごろ |  |  |  |  |
 | 04_published/2026-10-02_revicare-recovery-wear | 楽天ROOM | Revicare リカバリーウェア | 2026-10-02 |  |  |  |  |
 | 04_published/2026-10-02_plaud-notepin | 楽天ROOM | PLAUD NotePin | 2026-10-02 |  |  |  |  |
