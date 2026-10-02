@@ -18,6 +18,7 @@
 | 04_published/2026-10-02_revicare-recovery-wear | 楽天ROOM | Revicare リカバリーウェア | 2026-10-02 |  |  |  |  |
 | 04_published/2026-10-02_plaud-notepin | 楽天ROOM | PLAUD NotePin | 2026-10-02 |  |  |  |  |
 | 04_published/2026-10-02_shojiki-cordless-cleaner | 楽天ROOM | SHOJIKI コードレス掃除機 | 2026-10-02 |  |  |  |  |
-| （本人が登録・内容未共有） | 楽天ROOM | 【要記入】 | 2026-10-02 |  |  |  |  |
+| 04_published/2026-10-02_notta-memo | 楽天ROOM | Notta Memo | 2026-10-02 |  |  |  |  |
+| 04_published/2026-10-02_mitsubishi-nj-vs10h | 楽天ROOM | 三菱電機 炊飯器 NJ-VS10H | 2026-10-02 |  |  |  |  |
 
 - 2026-10-02 時点で ROOM の投稿は合計11個（本人申告）

@@ -13,3 +13,5 @@
 | Revicare リカバリーウェア 上下セット 夏用 半袖 | 未記入 | 未確認 | 未確認 | なし（レビュー要約） | 投稿済み（2026-10-02 本人申告） | 04_published/2026-10-02_revicare-recovery-wear |
 | PLAUD NotePin（通常版） | 未記入 | 未確認 | 未確認 | なし（レビュー要約） | 投稿済み（2026-10-02 本人申告） | 04_published/2026-10-02_plaud-notepin |
 | SHOJIKI コードレス掃除機 自立式 SH-J001 | 未記入 | 未確認 | 未確認 | なし（レビュー要約） | 投稿済み（2026-10-02 本人申告） | 04_published/2026-10-02_shojiki-cordless-cleaner |
+| Notta Memo（カード型AIボイスレコーダー） | 未記入 | 未確認 | 未確認 | なし | 投稿済み（2026-10-02 本人作成） | 04_published/2026-10-02_notta-memo |
+| 三菱電機 備長炭 炭炊釜 NJ-VS10H | 未記入 | 未確認 | 未確認 | なし | 投稿済み（2026-10-02 本人作成） | 04_published/2026-10-02_mitsubishi-nj-vs10h |
