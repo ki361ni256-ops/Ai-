@@ -49,7 +49,8 @@ Ai-/
 ├── guidelines/
 │   ├── compliance.md      … PR表記・ステマ規制・薬機法・規約チェック
 │   ├── post-style.md      … 媒体別の紹介文の型・文体
-│   └── review-summary.md  … 楽天のレビューを参考にROOMの紹介文を作るしくみ
+│   ├── review-summary.md  … 楽天のレビューを参考にROOMの紹介文を作るしくみ
+│   └── room-ai-prompts.md … Gemini・ChatGPT用のプロンプト（悩み→商品さがし→紹介文）
 ├── 01_research/           … リサーチメモ
 │   ├── _template.md
 │   ├── sources.md         … 情報源リスト
