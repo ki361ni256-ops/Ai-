@@ -42,3 +42,6 @@
 | BRUNO 衣類スチーマー（売り切れ） | 未記入 | 未確認 | 未確認 | なし | 投稿済み・**売り切れ**（差し替え候補） | ROOMのスクショ（2026-10-03）より |
 | 腰枕（腰椎サポート） | 未記入 | 未確認 | 未確認 | なし | 投稿済み（2026-10-03 本人作成） | ROOMのスクショ（2026-10-03）より |
 | Evoon マルチスマホポーチ | 未記入 | 未確認 | 未確認 | なし | 投稿予定（本人が紹介文を作成 2026-10-03・いっき1品目） | 02_plan/collections.md |
+| papakoso パパバッグ（抱っこ補助シート付き） | backyard | 未確認 | 未確認 | なし | 投稿済み（2026-10-03・いっき） | https://item.rakuten.co.jp/backyard/papakosobag/ |
+| THE NORTH FACE スウィープ（4L） | sports-st | 未確認 | 未確認 | なし | 投稿済み（2026-10-03・いっき） | https://item.rakuten.co.jp/sports-st/nm72304/ |
+| Evoon 3WAYビジネスリュック | evoon | 未確認 | 未確認 | なし | 投稿済み（2026-10-03・いっき） | https://item.rakuten.co.jp/evoon/eb-01/ |
