@@ -1,0 +1,118 @@
+<title>{{PAGE_TITLE}}</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@400;700&family=IBM+Plex+Sans+JP:wght@500;700&display=swap">
+<style>
+/* Layout: a single working column — step rail on top, then four paste blocks in note's order (title → free → paid line → paid). */
+:root{
+  --bg:#f3f5f4; --surface:#ffffff; --ink:#1d2622; --muted:#5d6b65; --line:#d6ddda;
+  --accent:#1f7a5a; --accent-ink:#ffffff; --accent-soft:#e2f0ea; --code:#eef2f0;
+  --f-body:"Zen Kaku Gothic New","Hiragino Sans","Noto Sans JP",system-ui,sans-serif;
+  --f-ui:"IBM Plex Sans JP","Hiragino Sans","Noto Sans JP",system-ui,sans-serif;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#121715; --surface:#1a211e; --ink:#e4ebe7; --muted:#9aa8a1; --line:#2f3a35;
+  --accent:#5cc49c; --accent-ink:#0d1a14; --accent-soft:#1f3229; --code:#222b27; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#121715; --surface:#1a211e; --ink:#e4ebe7; --muted:#9aa8a1; --line:#2f3a35;
+  --accent:#5cc49c; --accent-ink:#0d1a14; --accent-soft:#1f3229; --code:#222b27; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:16px;line-height:1.8}
+.wrap{max-width:46rem;margin:0 auto;padding-inline:16px;padding-block:24px 64px;display:flex;flex-direction:column;gap:20px}
+header h1{font-family:var(--f-ui);font-size:1.35rem;margin:0 0 4px;text-wrap:balance}
+header p{margin:0;color:var(--muted);font-size:.92rem}
+.steps{display:grid;grid-template-columns:repeat(auto-fit,minmax(9.5rem,1fr));gap:8px;margin:0;padding:0;list-style:none;font-family:var(--f-ui);font-size:.85rem}
+.steps a{display:flex;gap:8px;align-items:center;padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:var(--surface);color:var(--ink);text-decoration:none}
+.steps a:focus-visible,.btn:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.num{flex:none;width:1.6rem;height:1.6rem;border-radius:50%;display:grid;place-items:center;background:var(--accent-soft);color:var(--accent);font-weight:700;font-variant-numeric:tabular-nums}
+section.block{background:var(--surface);border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.bar{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center;justify-content:space-between;padding:12px 14px;border-bottom:1px solid var(--line);position:sticky;top:env(safe-area-inset-top,0px);background:var(--surface);z-index:1}
+.bar h2{font-family:var(--f-ui);font-size:1rem;margin:0;display:flex;gap:8px;align-items:center}
+.meta{color:var(--muted);font-size:.8rem;font-family:var(--f-ui);font-variant-numeric:tabular-nums}
+.btns{display:flex;gap:8px;flex-wrap:wrap}
+.btn{font-family:var(--f-ui);font-size:.88rem;font-weight:700;border-radius:8px;padding:8px 14px;cursor:pointer;border:1px solid var(--accent);background:var(--accent);color:var(--accent-ink)}
+.btn.sub{background:transparent;color:var(--accent)}
+.status{font-family:var(--f-ui);font-size:.82rem;color:var(--accent);min-height:1.2em;padding:0 14px}
+.content{padding:14px 18px 20px;min-width:0;overflow-wrap:anywhere}
+.content.title{font-size:1.15rem;font-weight:700;line-height:1.6}
+.content h2{font-size:1.25rem;margin:1.6em 0 .5em;line-height:1.5}
+.content h3{font-size:1.05rem;margin:1.4em 0 .4em;line-height:1.5}
+.content p{margin:.7em 0}
+.content ul,.content ol{padding-left:1.4em;margin:.5em 0}
+.content hr{border:0;border-top:1px solid var(--line);margin:1.6em 0}
+.content pre{background:var(--code);border-radius:8px;padding:12px;overflow-x:auto;font-size:.85rem;line-height:1.6;white-space:pre-wrap}
+.content code{font-family:ui-monospace,Menlo,Consolas,monospace}
+.paidline{border:2px dashed var(--accent);border-radius:10px;padding:14px 16px;background:var(--accent-soft);font-family:var(--f-ui);font-size:.92rem}
+.paidline strong{display:flex;gap:8px;align-items:center;margin-bottom:4px}
+.paidline p{margin:0}
+.note{color:var(--muted);font-size:.85rem;font-family:var(--f-ui)}
+@media (prefers-reduced-motion:reduce){*{scroll-behavior:auto!important}}
+</style>
+
+<div class="wrap">
+  <header>
+    <h1>note 貼り付け用</h1>
+    <p>{{GUIDE}}</p>
+  </header>
+
+  <ol class="steps">
+    <li><a href="#step-title"><span class="num">1</span>タイトル</a></li>
+    <li><a href="#step-free"><span class="num">2</span>本文</a></li>
+  </ol>
+
+  <section class="block" id="step-title">
+    <div class="bar">
+      <h2><span class="num">1</span>タイトル</h2>
+      <div class="btns"><button class="btn" id="copy-title" data-target="c-title" data-mode="text">コピー</button></div>
+    </div>
+    <div class="status" id="s-title" aria-live="polite"></div>
+    <div class="content title" id="c-title">{{TITLE}}</div>
+  </section>
+
+  <section class="block" id="step-free">
+    <div class="bar">
+      <h2><span class="num">2</span>本文</h2>
+      <div class="btns">
+        <button class="btn" id="copy-free" data-target="c-free" data-mode="rich">書式つきでコピー</button>
+        <button class="btn sub" id="copy-free-text" data-target="c-free" data-mode="text">テキストのみ</button>
+      </div>
+      <span class="meta" id="m-free"></span>
+    </div>
+    <div class="status" id="s-free" aria-live="polite"></div>
+    <div class="content" id="c-free">{{FREE}}</div>
+  </section>
+
+  <p class="note">貼ったあとはプレビューで、見出しや箇条書きが崩れていないか確認してください。崩れる場合は「テキストのみ」で貼り直せます。</p>
+</div>
+
+<script>
+(function(){
+  function count(id){var el=document.getElementById(id);return el.innerText.replace(/\s/g,'').length}
+  document.getElementById('m-free').textContent='約'+count('c-free').toLocaleString()+'字';
+  
+  function selectEl(el){var r=document.createRange();r.selectNodeContents(el);var s=window.getSelection();s.removeAllRanges();s.addRange(r)}
+  function say(btn,msg){var id='s-'+btn.dataset.target.slice(2);document.getElementById(id).textContent=msg}
+  async function copy(btn){
+    var el=document.getElementById(btn.dataset.target);
+    var text=el.innerText.trim();
+    try{
+      if(btn.dataset.mode==='rich'&&window.ClipboardItem&&navigator.clipboard&&navigator.clipboard.write){
+        await navigator.clipboard.write([new ClipboardItem({
+          'text/html':new Blob([el.innerHTML],{type:'text/html'}),
+          'text/plain':new Blob([text],{type:'text/plain'})})]);
+      }else{
+        await navigator.clipboard.writeText(text);
+      }
+      say(btn,'コピーしました。note に貼り付けてください。');
+      return;
+    }catch(e){}
+    try{
+      selectEl(el);
+      if(document.execCommand('copy')){say(btn,'コピーしました。note に貼り付けてください。');return}
+    }catch(e){}
+    selectEl(el);
+    say(btn,'全体を選択しました。長押し（または右クリック）でコピーしてください。');
+  }
+  document.querySelectorAll('.btn').forEach(function(b){b.addEventListener('click',function(){copy(b)})});
+})();
+</script>
