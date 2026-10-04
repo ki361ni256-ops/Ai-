@@ -45,8 +45,8 @@
 | papakoso パパバッグ（抱っこ補助シート付き） | backyard | 未確認 | 未確認 | なし | 投稿済み（2026-10-03・いっき） | https://item.rakuten.co.jp/backyard/papakosobag/ |
 | THE NORTH FACE スウィープ（4L） | sports-st | 未確認 | 未確認 | なし | 投稿済み（2026-10-03・いっき） | https://item.rakuten.co.jp/sports-st/nm72304/ |
 | Evoon 3WAYビジネスリュック | evoon | 未確認 | 未確認 | なし | 投稿済み（2026-10-03・いっき） | https://item.rakuten.co.jp/evoon/eb-01/ |
-| コールマン アウトドアワゴン | 未記入 | 未確認 | 未確認 | なし | 投稿予定（いっき・2026-10-04、リンクなし→ROOM検索で確認） | 02_plan/collections.md |
-| DOD スゴイッス（アウトドアチェア） | 未記入 | 未確認 | 未確認 | なし | 投稿予定（いっき・2026-10-04、リンクなし→ROOM検索で確認） | 02_plan/collections.md |
-| サーモス ソフトクーラー 20L | 未記入 | 未確認 | 未確認 | なし | 投稿予定（いっき・2026-10-04、リンクなし→ROOM検索で確認） | 02_plan/collections.md |
-| キャプテンスタッグ EVAフォームマット | 未記入 | 未確認 | 未確認 | なし | 投稿予定（いっき・2026-10-04、リンクなし→ROOM検索で確認） | 02_plan/collections.md |
-| BRUNO LEDランタン | 未記入 | 未確認 | 未確認 | なし | 投稿予定（いっき・2026-10-04、リンクなし→ROOM検索で確認） | 02_plan/collections.md |
+| コールマン アウトドアワゴン | 未記入 | 未確認 | 未確認 | なし | 投稿済み（2026-10-04） | 02_plan/collections.md |
+| DOD スゴイッス（アウトドアチェア） | 未記入 | 未確認 | 未確認 | なし | 投稿済み（2026-10-04） | 02_plan/collections.md |
+| サーモス ソフトクーラー 20L | 未記入 | 未確認 | 未確認 | なし | 投稿済み（2026-10-04） | 02_plan/collections.md |
+| キャプテンスタッグ EVAフォームマット | 未記入 | 未確認 | 未確認 | なし | 投稿済み（2026-10-04） | 02_plan/collections.md |
+| BRUNO LEDランタン | 未記入 | 未確認 | 未確認 | なし | 投稿済み（2026-10-04） | 02_plan/collections.md |
