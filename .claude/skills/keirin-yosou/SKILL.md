@@ -10,7 +10,8 @@ description: 競輪の出走表やオッズのテキストを貼られたら、�
 ## 1. 予想（出走表のテキストが貼られたとき）
 1. 会場・日付・レース番号を確認する（書いていなければ聞く。日付は今日と決めつけない）
 2. 貼られた出走表をそのまま `予想記録/inputs/<会場>_<YYYYMMDD>_<RR>R_card.txt` に保存。オッズも貼られたら `..._odds.txt` に保存
-3. `python3 scripts/yosou.py predict <会場> <YYYY-MM-DD> <R> <card.txt> [odds.txt]` を実行
+3. 並び入りのオッズ表があるときは、**v1 と v2 の両方**を記録する（`predict ... v1` と `predict ... v2`。比較のため）。X に出すのは本人が選んだ方
+   `python3 scripts/yosou.py predict <会場> <YYYY-MM-DD> <R> <card.txt> [odds.txt]` を実行
 4. `ok: false` なら、problems をそのまま伝えて止まる（読めなかった項目を推測で補わない）
 5. 出力の x_text をコピペできる形で返す。x_audit に指摘があれば直してから返す
 6. 予想は印・買い目を機械的に出したもの。**オッズを見ていないときは「荒れる」「堅い」「妙味」を書かない**（オッズが貼られたら、買い目のオッズと人気順を添える）

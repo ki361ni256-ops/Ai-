@@ -117,3 +117,16 @@ class TestLines(unittest.TestCase):
         self.assertEqual(f[3], dict(line_no=1, line_position=2, line_size=3, line_head=7, is_single=False, style=None))
         self.assertTrue(f[4]["is_single"])
         self.assertEqual(f[6]["line_position"], 3)
+
+
+class TestV2(unittest.TestCase):
+    def test_v2_needs_lines_and_uses_them(self):
+        from keirin.lines import line_features
+        r = parse_card(CARD12.read_text(encoding="utf-8"))
+        with self.assertRaises(ValueError):
+            Y.rank(r, "v2")
+        lines = line_features("6-8 / 1 / 7-2 / 3-9-5 / 4")
+        v2 = [x["car_no"] for x in Y.rank(r, "v2", lines)[:5]]
+        v1 = [x["car_no"] for x in Y.rank(r, "v1")[:5]]
+        self.assertNotEqual(v1, v2)          # 並びで順番が変わる
+        self.assertEqual(v2[0], 2)           # 番手の吉田（120.8＋番手）

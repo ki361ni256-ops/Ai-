@@ -11,6 +11,12 @@ RULES = {
         pl_temperature=0.25,
     ),
 }
+RULES["v2"] = dict(
+    RULES["v1"],
+    # 並び（ライン）の位置で強さを足し引きする。値は 2026-10-09 時点の仮置き（記録がたまったら比べて見直す）
+    line_bonus=dict(bante=1.5, head_of_3plus=0.5, single=-1.0),
+    needs_lines=True,
+)
 CURRENT = "v1"
 
 # X に書かない言葉（根拠なく断定する・オッズを見ずに荒れ／堅いを言う）
@@ -19,11 +25,25 @@ BANNED_WORDS = ["必ず", "絶対", "確実", "鉄板", "勝てる", "儲かる"
 
 def strength(r, rule):
     pen = sum(rule["absence_penalty"].get(a["reason"], 0) for a in r.get("absences", []))
-    return r["score"] - pen
+    bonus = 0.0
+    lb, ln = rule.get("line_bonus"), r.get("line")
+    if lb and ln:
+        if ln["is_single"]:
+            bonus += lb["single"]
+        elif ln["line_position"] == 2:
+            bonus += lb["bante"]
+        elif ln["line_position"] == 1 and ln["line_size"] >= 3:
+            bonus += lb["head_of_3plus"]
+    return r["score"] - pen + bonus
 
 
-def rank(riders, version=CURRENT):
+def rank(riders, version=CURRENT, lines=None):
+    """lines: keirin.lines.line_features() の結果。v2 では必須。"""
     rule = RULES[version]
+    if rule.get("needs_lines"):
+        if not lines:
+            raise ValueError(f"ルール {version} には並び（ライン）が必要")
+        riders = [dict(r, line=lines.get(r["car_no"])) for r in riders]
     return sorted(riders, key=lambda r: (-strength(r, rule), -r.get("top3_rate", 0), r["car_no"]))
 
 

@@ -16,6 +16,7 @@ from keirin.card_parser import parse_card, check_card  # noqa: E402
 from keirin.db import connect, init_db  # noqa: E402
 from keirin.odds_parser import parse_trifecta, diagnose  # noqa: E402
 from keirin.matrix_odds_parser import parse_matrix  # noqa: E402
+from keirin.lines import line_features  # noqa: E402
 from keirin.timeutil import now_jst  # noqa: E402
 from keirin import yosou as Y  # noqa: E402
 
@@ -34,7 +35,7 @@ def predict(conn, venue, date, race_no, card_path, odds_path=None, version=Y.CUR
     probs = check_card(riders)
     if probs:
         return dict(ok=False, problems=probs)
-    odds, odds_warning, odds_stamp = None, None, None
+    odds, odds_warning, odds_stamp, lines = None, None, None, None
     if odds_path:
         odds = {}
         for op in str(odds_path).split(","):
@@ -45,6 +46,8 @@ def predict(conn, venue, date, race_no, card_path, odds_path=None, version=Y.CUR
                     odds_warning = "; ".join(mx["problems"])
                     continue
                 odds.update(mx["odds"])
+                if mx["lines"]:
+                    lines = line_features(mx["lines"])
                 odds_stamp = mx["source_timestamp"] or odds_stamp
             else:
                 got = parse_trifecta(ot)
@@ -53,7 +56,10 @@ def predict(conn, venue, date, race_no, card_path, odds_path=None, version=Y.CUR
                 odds.update(got)
         if not odds:
             odds_path, odds = None, None  # 組合せの分からないオッズは記録に使わない
-    ranked = Y.rank(riders, version)
+    try:
+        ranked = Y.rank(riders, version, lines)
+    except ValueError as e:
+        return dict(ok=False, problems=[str(e)])
     form = Y.formation(ranked)
     x = Y.render_x(venue, race_no, ranked, form, odds)
     audit = Y.audit_text(x)
@@ -159,7 +165,10 @@ def replay(conn, version):
     for row in rows:
         p = Path(row["card_path"])
         p = p if p.is_absolute() else ROOT / p
-        form = Y.formation(Y.rank(parse_card(p.read_text(encoding="utf-8")), version))
+        try:
+            form = Y.formation(Y.rank(parse_card(p.read_text(encoding="utf-8")), version))
+        except ValueError:
+            continue  # 並びが記録されていないレースは比較から外す
         hit_any = False
         for tier, combos in form.items():
             for c in combos:
