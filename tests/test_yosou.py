@@ -108,3 +108,12 @@ class TestChecker(unittest.TestCase):
         dup = "厚め 4-3-1\n本線 4-3-1\n押さえ 1-4-3"
         self.assertTrue(any("重複" in x for x in check_post(dup)))
         self.assertTrue(any("文字数" in x for x in check_post(good + "あ" * 200)))
+
+
+class TestLines(unittest.TestCase):
+    def test_line_features(self):
+        from keirin.lines import line_features
+        f = line_features("7-3-1 / 4 / 5-2-6")
+        self.assertEqual(f[3], dict(line_no=1, line_position=2, line_size=3, line_head=7, is_single=False, style=None))
+        self.assertTrue(f[4]["is_single"])
+        self.assertEqual(f[6]["line_position"], 3)
