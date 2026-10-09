@@ -3,7 +3,7 @@
   予想: python3 scripts/yosou.py predict 弥彦 2026-10-09 8 予想記録/inputs/弥彦_20261009_08R_card.txt [オッズ.txt]
   結果: python3 scripts/yosou.py result 弥彦 2026-10-09 8 1-5-2 12340
   振り返り: python3 scripts/yosou.py report
-DB は yosou.db（Git 管理外）。入力テキストは 予想記録/inputs/ に保存して Git で残す。
+DB は yosou.db（小さいので Git で残す）。入力テキストは 予想記録/inputs/ に保存して Git で残す。
 """
 import hashlib
 import json
