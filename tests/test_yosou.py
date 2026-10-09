@@ -61,3 +61,16 @@ class TestYosou(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class TestMatrixOdds(unittest.TestCase):
+    def test_parse_oddspark_matrix(self):
+        from keirin.matrix_odds_parser import parse_matrix, format_lines
+        o = parse_matrix((ROOT / "予想記録" / "inputs" / "弥彦_20261009_10R_odds_1着1.txt").read_text(encoding="utf-8"))
+        self.assertEqual(o["problems"], [])
+        self.assertEqual(o["axis"], 1)                 # 空の行と列から1着を決める
+        self.assertEqual(len(o["odds"]), 56)           # 8×7通り
+        self.assertEqual(o["odds"]["1-9-2"], 36.0)     # 2着9・3着2
+        self.assertEqual(o["odds"]["1-2-9"], 23.5)
+        self.assertEqual(o["source_timestamp"], "2026-10-09T14:58:00+09:00")
+        self.assertEqual(format_lines(o["lines"]), "9-2 / 4-1 / 7-3 / 8-6 / 5")

@@ -15,6 +15,7 @@ sys.path.insert(0, str(ROOT))
 from keirin.card_parser import parse_card, check_card  # noqa: E402
 from keirin.db import connect, init_db  # noqa: E402
 from keirin.odds_parser import parse_trifecta, diagnose  # noqa: E402
+from keirin.matrix_odds_parser import parse_matrix  # noqa: E402
 from keirin.timeutil import now_jst  # noqa: E402
 from keirin import yosou as Y  # noqa: E402
 
@@ -33,11 +34,25 @@ def predict(conn, venue, date, race_no, card_path, odds_path=None, version=Y.CUR
     probs = check_card(riders)
     if probs:
         return dict(ok=False, problems=probs)
-    odds_text = Path(odds_path).read_text(encoding="utf-8") if odds_path else None
-    odds = parse_trifecta(odds_text) if odds_text else None
-    odds_warning = diagnose(odds_text) if odds_text else None
-    if odds_warning:
-        odds_path, odds = None, None  # 組合せの分からないオッズは記録に使わない
+    odds, odds_warning, odds_stamp = None, None, None
+    if odds_path:
+        odds = {}
+        for op in str(odds_path).split(","):
+            ot = Path(op).read_text(encoding="utf-8")
+            if "2着" in ot and "3着" in ot:          # 1着固定の表（オッズパークの形）
+                mx = parse_matrix(ot)
+                if mx["problems"]:
+                    odds_warning = "; ".join(mx["problems"])
+                    continue
+                odds.update(mx["odds"])
+                odds_stamp = mx["source_timestamp"] or odds_stamp
+            else:
+                got = parse_trifecta(ot)
+                if not got:
+                    odds_warning = diagnose(ot)
+                odds.update(got)
+        if not odds:
+            odds_path, odds = None, None  # 組合せの分からないオッズは記録に使わない
     ranked = Y.rank(riders, version)
     form = Y.formation(ranked)
     x = Y.render_x(venue, race_no, ranked, form, odds)
@@ -47,7 +62,7 @@ def predict(conn, venue, date, race_no, card_path, odds_path=None, version=Y.CUR
         "INSERT OR IGNORE INTO pick_runs(venue,event_date,race_no,rule_version,created_at,card_sha256,card_path,odds_path,"
         "odds_retrieved_at,marks_json,x_text,x_audit) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)",
         (venue, date, int(race_no), version, now_jst(), hashlib.sha256(text.encode()).hexdigest(), str(card_path),
-         str(odds_path) if odds_path else None, now_jst() if odds_path else None,
+         str(odds_path) if odds_path else None, (odds_stamp or now_jst()) if odds_path else None,
          json.dumps(marks, ensure_ascii=False), x, json.dumps(audit, ensure_ascii=False)))
     if cur.rowcount == 0:
         return dict(ok=False, problems=["同じレース・同じルールの予想が既にある（あとから書き換えない）"])
