@@ -77,7 +77,14 @@
 - 予想・バックテスト結果は「過去データでの検証結果」であり、将来の利益を保証しない旨を、公開・共有する文書に明記する。
 - 実際の購入金額・資金管理は本人の判断とし、AI が購入を自動実行する仕組みは、本人の明示的な承認なしに作らない。
 
-## 9. ファイル構成（予定）
+## 9. 運用中の予想（出走表から読む予想）
+
+- 出走表・オッズのテキストを貼られたら `.claude/skills/keirin-yosou/SKILL.md` の手順で予想・記録する
+- これは**AIモデルではない**（ルール方式 v1）。X などで「AI予想」と書かない
+- オッズを見ていないときに「荒れる」「堅い」「妙味」と書かない
+- ルールの変更は `品質改善ループ.md` の条件（100レース以上・回収率の改善）を満たしたときだけ
+
+## 10. ファイル構成（予定）
 
 ```
 CLAUDE.md                  … このファイル（最上位ルール）
@@ -86,6 +93,9 @@ CLAUDE.md                  … このファイル（最上位ルール）
 DB設計書.md / データ蓄積システム.md / features.md … STEP 4〜6 の設計と監査
 バックテスト基盤.md / model_report.md / 最終報告.md … STEP 7〜9
 scripts/run_backtest.py   … walk-forward バックテストの実行
+scripts/yosou.py / keirin/yosou.py / keirin/card_parser.py / keirin/odds_parser.py … 運用中の予想の仕組み
+品質改善ループ.md          … 予想の記録・監査・改善の決まり
+予想記録/                  … 予想の入力（出走表テキスト）と記録
 db/schema.sql              … SQLite のスキーマ（keirin.db は scripts/init_db.py で作成）
 keirin/                    … DB 操作・取得・特徴量のコード
 tests/                     … テスト（架空データ。成績には使わない。python3 -m unittest discover -s tests -t .）

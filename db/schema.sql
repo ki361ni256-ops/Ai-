@@ -370,3 +370,43 @@ WHERE t.odds_basis = 'pre_0800'
                       WHERE o.race_id = b.race_id AND o.bet_type = b.bet_type
                         AND o.combination = b.combination AND o.retrieved_at = b.odds_retrieved_at
                         AND o.snapshot_kind = 'pre_0800'));
+
+------------------------------------------------------------
+-- 5. 運用中の予想記録（出走表から読む予想・X 投稿用）
+------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS pick_runs (
+  pick_id          INTEGER PRIMARY KEY,
+  venue            TEXT NOT NULL,
+  event_date       TEXT NOT NULL,
+  race_no          INTEGER NOT NULL,
+  rule_version     TEXT NOT NULL,
+  created_at       TEXT NOT NULL,          -- 予想を作った時刻（発走前であること）
+  race_start_time  TEXT,                   -- 分かれば記録
+  card_sha256      TEXT NOT NULL,          -- 入力した出走表の内容ハッシュ
+  card_path        TEXT NOT NULL,
+  odds_path        TEXT,
+  odds_retrieved_at TEXT,                  -- オッズを貼った時刻（不明なら NULL）
+  marks_json       TEXT NOT NULL,
+  x_text           TEXT NOT NULL,
+  x_audit          TEXT,                   -- 投稿文の監査結果（空なら合格）
+  UNIQUE (venue, event_date, race_no, rule_version)
+);
+
+CREATE TABLE IF NOT EXISTS pick_bets (
+  pick_id      INTEGER NOT NULL REFERENCES pick_runs(pick_id),
+  tier         TEXT NOT NULL CHECK (tier IN ('厚め','本線','押さえ')),
+  combination  TEXT NOT NULL,
+  stake_yen    INTEGER NOT NULL,           -- 仮想購入額（1点100円。厚めは300円）
+  odds_at_pick REAL,
+  PRIMARY KEY (pick_id, combination)
+);
+
+CREATE TABLE IF NOT EXISTS pick_results (
+  venue          TEXT NOT NULL,
+  event_date     TEXT NOT NULL,
+  race_no        INTEGER NOT NULL,
+  trifecta       TEXT NOT NULL,            -- 例 '1-5-2'
+  payout_yen     INTEGER,                  -- 3連単の100円あたり払戻（分からなければ NULL）
+  entered_at     TEXT NOT NULL,
+  PRIMARY KEY (venue, event_date, race_no)
+);
