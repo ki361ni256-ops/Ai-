@@ -17,3 +17,14 @@ def parse_trifecta(text):
             if len({a, b, c}) == 3:
                 out[f"{a}-{b}-{c}"] = float(o)
     return out
+
+
+def diagnose(text):
+    """組合せが読めなかったときの理由。数字だけ（人気順とオッズ）で組合せがないなら、その旨を返す。"""
+    if parse_trifecta(text):
+        return None
+    nums = re.findall(r"\d+\.\d", unicodedata.normalize("NFKC", text))
+    if nums:
+        return (f"オッズの数値（{len(nums)}個）はあるが、組合せ（例 1-2-3）が入っていない。"
+                "組合せが画像や色付きの枠で表示されていて、コピーで抜けている可能性がある")
+    return "オッズを読み取れなかった"

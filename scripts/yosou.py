@@ -14,7 +14,7 @@ ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
 from keirin.card_parser import parse_card, check_card  # noqa: E402
 from keirin.db import connect, init_db  # noqa: E402
-from keirin.odds_parser import parse_trifecta  # noqa: E402
+from keirin.odds_parser import parse_trifecta, diagnose  # noqa: E402
 from keirin.timeutil import now_jst  # noqa: E402
 from keirin import yosou as Y  # noqa: E402
 
@@ -33,7 +33,11 @@ def predict(conn, venue, date, race_no, card_path, odds_path=None, version=Y.CUR
     probs = check_card(riders)
     if probs:
         return dict(ok=False, problems=probs)
-    odds = parse_trifecta(Path(odds_path).read_text(encoding="utf-8")) if odds_path else None
+    odds_text = Path(odds_path).read_text(encoding="utf-8") if odds_path else None
+    odds = parse_trifecta(odds_text) if odds_text else None
+    odds_warning = diagnose(odds_text) if odds_text else None
+    if odds_warning:
+        odds_path, odds = None, None  # 組合せの分からないオッズは記録に使わない
     ranked = Y.rank(riders, version)
     form = Y.formation(ranked)
     x = Y.render_x(venue, race_no, ranked, form, odds)
@@ -53,7 +57,7 @@ def predict(conn, venue, date, race_no, card_path, odds_path=None, version=Y.CUR
             conn.execute("INSERT INTO pick_bets(pick_id,tier,combination,stake_yen,odds_at_pick) VALUES (?,?,?,?,?)",
                          (pid, tier, c, STAKE[tier], (odds or {}).get(c)))
     conn.commit()
-    return dict(ok=True, pick_id=pid, x_text=x, x_audit=audit, formation=form)
+    return dict(ok=True, pick_id=pid, x_text=x, x_audit=audit, formation=form, odds_warning=odds_warning)
 
 
 def result(conn, venue, date, race_no, trifecta, payout=None):
