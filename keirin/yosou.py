@@ -130,9 +130,11 @@ def compress(combos):
     return " / ".join(_fmt(*m) for m in merged)
 
 
-def render_x(venue, race_no, ranked, form, odds=None):
+def render_x(venue, race_no, ranked, form, odds=None, tenkai=None):
     m = marks(ranked)
     lines = [f"🚴 {venue}競輪 {race_no}R 3連単 無料予想", ""]
+    if tenkai:
+        lines += [tenkai, ""]
     lines += [f"{s}{r['car_no']} {r['name']}" for s, r in m[:3]]
     lines.append("△" + " △".join(f"{r['car_no']} {r['name']}" for _, r in m[3:]))
     lines += ["", f"厚め {compress(form['厚め'])}", f"本線 {compress(form['本線'])}", f"押さえ {compress(form['押さえ'])}"]
@@ -141,15 +143,10 @@ def render_x(venue, race_no, ranked, form, odds=None):
         low = [c for c, (o, p) in ov.items() if o is not None and o < 10]
         if low:
             lines.append(f"（10倍未満の組合せ: {', '.join(low)}）")
-    lines += ["", "※出走表のデータから読んだ予想です。的中を保証するものではありません。車券は20歳になってから、無理のない範囲で。"]
     return "\n".join(lines)
 
 
 def audit_text(text):
     """X 投稿文の監査。問題点のリスト（空なら合格）。"""
-    probs = [f"使わない言葉「{w}」が入っている" for w in BANNED_WORDS if w in text]
-    if "保証するものではありません" not in text:
-        probs.append("注意書きがない")
-    if "20歳" not in text:
-        probs.append("年齢の注意がない")
-    return probs
+    # 注意書きは 2026-10-09 本人の指示で入れない（代わりに展開を書く）
+    return [f"使わない言葉「{w}」が入っている" for w in BANNED_WORDS if w in text]
