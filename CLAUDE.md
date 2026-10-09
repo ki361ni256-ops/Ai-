@@ -99,6 +99,7 @@ scripts/yosou.py / keirin/yosou.py / keirin/card_parser.py / keirin/odds_parser.
 仕組み化ロードマップ.md     … 役割（予想・チェック・記録）と今後の進め方
 .claude/agents/keirin-checker.md … チェック担当（予想のたびに投稿前チェック、結果のたびにフィードバック）
 予想記録/                  … 予想の入力（出走表テキスト）と記録
+app/keirin_lab.html        … スマホで使う「競輪予想ラボ」（貼る→予想→X投稿文→チェック→記録→成績）。公開先 https://claude.ai/artifact/DbwAkjVynsyjZG8cCqKvnj 。ロジックは keirin/yosou.py と同じ（変えるときは両方そろえる）
 db/schema.sql              … SQLite のスキーマ（keirin.db は scripts/init_db.py で作成）
 keirin/                    … DB 操作・取得・特徴量のコード
 tests/                     … テスト（架空データ。成績には使わない。python3 -m unittest discover -s tests -t .）

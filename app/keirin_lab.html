@@ -1,0 +1,440 @@
+<title>競輪予想ラボ</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Dela+Gothic+One&family=Zen+Kaku+Gothic+New:wght@400;700&family=IBM+Plex+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+/* Layout: one working column (phone first) — tabs on top, each tab is a stack of panels. */
+:root{
+  --bg:#f2f4f1; --surface:#ffffff; --ink:#18221d; --muted:#5b6a62; --line:#d3dbd5;
+  --bank:#1d5c45; --bank-ink:#ffffff; --accent:#e0661a; --soft:#e3efe8; --warn:#b3261e; --ok:#1d7a4f;
+  --f-display:"Dela Gothic One","Hiragino Sans","Noto Sans JP",sans-serif;
+  --f-body:"Zen Kaku Gothic New","Hiragino Sans","Noto Sans JP",system-ui,sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0f1512; --surface:#18201c; --ink:#e3ebe6; --muted:#97a69e; --line:#2c3832;
+  --bank:#3fae84; --bank-ink:#08130e; --accent:#ff8a3d; --soft:#1f2e27; --warn:#ff8a80; --ok:#5fd39b; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0f1512; --surface:#18201c; --ink:#e3ebe6; --muted:#97a69e; --line:#2c3832;
+  --bank:#3fae84; --bank-ink:#08130e; --accent:#ff8a3d; --soft:#1f2e27; --warn:#ff8a80; --ok:#5fd39b; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.7;margin:0}
+.wrap{max-width:44rem;margin:0 auto;padding-inline:16px;padding-block:16px 64px;display:flex;flex-direction:column;gap:14px}
+header{display:flex;align-items:baseline;justify-content:space-between;gap:8px;flex-wrap:wrap}
+h1{font-family:var(--f-display);font-weight:400;font-size:1.5rem;margin:0;letter-spacing:.02em}
+h1 span{color:var(--accent)}
+.sub{color:var(--muted);font-size:.8rem}
+nav{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;position:sticky;top:env(safe-area-inset-top,0px);background:var(--bg);padding-block:6px;z-index:2}
+nav button{font:700 .9rem var(--f-body);padding:10px 4px;border-radius:10px;border:1px solid var(--line);background:var(--surface);color:var(--ink);cursor:pointer}
+nav button[aria-selected="true"]{background:var(--bank);color:var(--bank-ink);border-color:var(--bank)}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px;display:flex;flex-direction:column;gap:10px;min-width:0}
+.panel h2{font-size:1rem;margin:0}
+.row{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+label{display:flex;flex-direction:column;gap:4px;font-size:.8rem;color:var(--muted);min-width:0}
+input,textarea,select{font:inherit;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:8px;width:100%;min-width:0}
+textarea{min-height:7rem;font-size:.8rem;font-family:var(--f-mono)}
+.btn{font:700 .95rem var(--f-body);padding:11px 14px;border-radius:10px;border:none;background:var(--accent);color:#fff;cursor:pointer}
+.btn.sec{background:transparent;color:var(--bank);border:1.5px solid var(--bank)}
+.btn:disabled{opacity:.5;cursor:default}
+.btns{display:flex;gap:8px;flex-wrap:wrap}
+button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.marks{display:flex;flex-direction:column;gap:4px}
+.mk{display:grid;grid-template-columns:2rem 2.2rem 1fr auto;align-items:center;gap:8px;font-size:.9rem}
+.sym{font-weight:700;color:var(--accent);font-size:1.05rem}
+.car{display:inline-grid;place-items:center;width:2rem;height:2rem;border-radius:6px;font:700 .95rem var(--f-mono);border:1px solid var(--line)}
+.c1{background:#fff;color:#111}.c2{background:#111;color:#fff}.c3{background:#d7262d;color:#fff}.c4{background:#1f5fd1;color:#fff}.c5{background:#f2d31b;color:#111}.c6{background:#1e9a3d;color:#fff}.c7{background:#f08a1c;color:#111}.c8{background:#ef7fb2;color:#111}.c9{background:#7b3fb0;color:#fff}
+.meta{color:var(--muted);font-size:.78rem;font-variant-numeric:tabular-nums}
+.tier{display:grid;grid-template-columns:3.6rem 1fr;gap:8px;align-items:start}
+.tier b{font-size:.85rem}
+.combo{font-family:var(--f-mono);font-size:.9rem}
+.odds{color:var(--muted);font-size:.75rem}
+.vtabs{display:flex;gap:6px}
+.vtabs button{font:700 .8rem var(--f-body);padding:6px 10px;border-radius:999px;border:1px solid var(--line);background:var(--bg);color:var(--ink);cursor:pointer}
+.vtabs button[aria-pressed="true"]{background:var(--soft);border-color:var(--bank);color:var(--bank)}
+.check{font-size:.82rem;padding:8px 10px;border-radius:8px;background:var(--soft)}
+.check.ng{background:transparent;border:1.5px solid var(--warn);color:var(--warn)}
+.status{font-size:.82rem;color:var(--bank);min-height:1.2em}
+.warn{color:var(--warn);font-size:.82rem}
+table{border-collapse:collapse;width:100%;font-size:.82rem;font-variant-numeric:tabular-nums}
+th,td{border-bottom:1px solid var(--line);padding:6px 4px;text-align:right;white-space:nowrap}
+th:first-child,td:first-child{text-align:left}
+.tablewrap{overflow-x:auto}
+.empty{color:var(--muted);font-size:.85rem}
+svg text{fill:var(--muted);font-size:10px}
+[hidden]{display:none!important}
+@media (max-width:420px){.row{grid-template-columns:1fr 1fr}.row label:first-child{grid-column:1/-1}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+
+<div class="wrap">
+  <header>
+    <h1>競輪予想<span>ラボ</span></h1>
+    <div class="sub">出走表から読む予想（ルール v1 / v2）・記録・成績</div>
+  </header>
+
+  <nav role="tablist">
+    <button role="tab" id="tab-yosou" aria-selected="true">予想</button>
+    <button role="tab" id="tab-result" aria-selected="false">結果</button>
+    <button role="tab" id="tab-stats" aria-selected="false">成績</button>
+  </nav>
+
+  <!-- 予想 -->
+  <section id="pane-yosou" class="stack" style="display:flex;flex-direction:column;gap:14px">
+    <div class="panel">
+      <h2>1. 貼る</h2>
+      <div class="row">
+        <label>会場<input id="venue" placeholder="例 弥彦"></label>
+        <label>日付<input id="date" type="date"></label>
+        <label>R<input id="race" type="number" min="1" max="12" inputmode="numeric"></label>
+      </div>
+      <label>出走表（KEIRIN.JP の出走表をそのままコピー）<textarea id="card" placeholder="1	1	佐々木	114.5	8-2-4-8&#10;36.3% 45.4% 63.6%	2	7	1 …"></textarea></label>
+      <label>オッズ表①（オッズパークの3連単オッズ表。並びも入ります・任意）<textarea id="odds1" placeholder="10R 3連単オッズ …"></textarea></label>
+      <label>オッズ表②（1着を別の車番に切り替えた表・任意）<textarea id="odds2"></textarea></label>
+      <div class="btns"><button class="btn" id="run">予想する</button><button class="btn sec" id="clear">入力を消す</button></div>
+      <div class="warn" id="parse-warn" aria-live="polite"></div>
+    </div>
+
+    <div class="panel" id="out" hidden>
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap">
+        <h2>2. 予想</h2>
+        <div class="vtabs" id="vtabs">
+          <button data-v="v2" aria-pressed="true">v2 並びあり</button>
+          <button data-v="v1" aria-pressed="false">v1 得点のみ</button>
+        </div>
+      </div>
+      <div class="meta" id="out-meta"></div>
+      <div class="marks" id="marks"></div>
+      <div id="tiers" style="display:flex;flex-direction:column;gap:6px"></div>
+    </div>
+
+    <div class="panel" id="xpanel" hidden>
+      <h2>3. X投稿文</h2>
+      <textarea id="xtext" style="min-height:14rem;font-family:var(--f-body);font-size:.9rem"></textarea>
+      <div class="check" id="xcheck"></div>
+      <div class="btns">
+        <button class="btn" id="copy">コピー</button>
+        <button class="btn sec" id="save">予想を記録する</button>
+      </div>
+      <div class="status" id="save-status" aria-live="polite"></div>
+    </div>
+  </section>
+
+  <!-- 結果 -->
+  <section id="pane-result" hidden style="display:flex;flex-direction:column;gap:14px">
+    <div class="panel">
+      <h2>結果を入れる</h2>
+      <div class="meta">記録した予想のうち、結果がまだのレース</div>
+      <div id="pending"></div>
+      <div class="status" id="res-status" aria-live="polite"></div>
+    </div>
+  </section>
+
+  <!-- 成績 -->
+  <section id="pane-stats" hidden style="display:flex;flex-direction:column;gap:14px">
+    <div class="panel">
+      <h2>ルール別の成績</h2>
+      <div class="meta">仮想購入：厚め300円、本線・押さえ1点100円。払戻が入ったレースで計算。<b>100レース未満は良し悪しを判断しない</b>。</div>
+      <div class="tablewrap"><table id="stats-table"></table></div>
+    </div>
+    <div class="panel">
+      <h2>収支の推移</h2>
+      <div id="curve"></div>
+    </div>
+    <div class="panel">
+      <h2>記録したレース</h2>
+      <div class="tablewrap"><table id="hist"></table></div>
+    </div>
+  </section>
+  <p class="meta" id="dbnote"></p>
+</div>
+
+<script>
+(function(){
+"use strict";
+const $=id=>document.getElementById(id);
+const N=s=>s.normalize("NFKC");
+const STAKE={"厚め":300,"本線":100,"押さえ":100};
+const BANNED=["必ず","絶対","確実","鉄板","勝てる","儲かる","波乱","荒れる","堅い","妙味","AI予想"];
+const RULES={
+  v1:{absence:{"病気欠場":1,"負傷欠場":1}},
+  v2:{absence:{"病気欠場":1,"負傷欠場":1},line:{bante:1.5,head3:0.5,single:-1.0}}
+};
+
+/* ---------- 出走表（KEIRIN.JP 形式） ---------- */
+function parseCard(text){
+  const ROW=/^(?:(\d)\t)?(\d)\t([^\t\d][^\t]*)\t(\d+(?:\.\d+)?)\t(\d+)-(\d+)-(\d+)-(\d+)\s*$/;
+  const STATS=/^([\d.]+)%\s+([\d.]+)%\s+([\d.]+)%\t(\d+)\t(\d+)\t(\d+)\t(\d+)\t(\d+)\t(\d+)\t(\d+)\t([\d.]+)\t(\S+)/;
+  const MEET=/^(\S)[GF]\d$/;
+  const riders=[];let cur=null,frame=null;
+  for(const raw of text.split(/\r?\n/)){
+    const m=raw.match(ROW);
+    if(m){if(m[1])frame=+m[1];cur={frame,car:+m[2],name:m[3].trim(),score:+m[4],absences:[],meets:[]};riders.push(cur);continue}
+    if(!cur)continue;
+    const s=raw.match(STATS);
+    if(s){Object.assign(cur,{win:+s[1]/100,top2:+s[2]/100,top3:+s[3]/100,style:s[12]});continue}
+    const t=N(raw).trim();
+    if(!t||t.startsWith("誘導"))continue;
+    if(MEET.test(t))cur.meets.push(t);
+    else if(t.endsWith("欠場"))cur.absences.push(t);
+  }
+  riders.sort((a,b)=>a.car-b.car);
+  const probs=[];
+  if(!riders.length)probs.push("出走表の選手の行を読み取れなかった（KEIRIN.JP の出走表をそのままコピーしてください）");
+  else{
+    const cars=riders.map(r=>r.car);
+    if(cars.some((c,i)=>c!==i+1))probs.push("車番が連番になっていない: "+cars.join(","));
+    riders.forEach(r=>{if(r.top3===undefined)probs.push(r.car+"番 "+r.name+"：勝率の行を読めなかった")});
+  }
+  return {riders,probs};
+}
+
+/* ---------- オッズ表（1着固定の表）と並び ---------- */
+function parseMatrix(text){
+  const t=N(text);const out={axis:null,odds:{},stamp:null,lines:[],probs:[]};
+  if(!t.trim())return null;
+  const st=t.match(/(\d{4})\/(\d{2})\/(\d{2})\s+(\d{1,2}):(\d{2})現在/);
+  if(st)out.stamp=`${st[1]}-${st[2]}-${st[3]} ${st[4].padStart(2,"0")}:${st[5]}`;
+  const rows={};let started=false;
+  for(let raw of t.split(/\r?\n/)){
+    if(raw.startsWith("3着")){started=true;raw=raw.slice(2).replace(/^\t/,"")}
+    else if(!started)continue;
+    if(raw.startsWith("発売票数"))break;
+    const f=raw.split("\t");
+    if(!f.length||!/^\d+$/.test(f[0].trim()))continue;
+    const vals=f.slice(1,10).map(x=>x.trim());while(vals.length<9)vals.push("");
+    rows[+f[0]]=vals.map(v=>v?parseFloat(v.replace(/,/g,"")):null);
+  }
+  const keys=Object.keys(rows).map(Number);
+  if(keys.length<2){out.probs.push("オッズ表を読み取れなかった");return out}
+  const n=Math.max(...keys);
+  const er=keys.filter(r=>rows[r].every(v=>v==null));
+  const ec=[];for(let c=1;c<=n;c++)if(keys.every(r=>rows[r][c-1]==null))ec.push(c);
+  const common=er.filter(x=>ec.includes(x));
+  if(common.length!==1){out.probs.push("1着の車番を決められなかった");return out}
+  const ax=common[0];out.axis=ax;
+  for(const th of keys)rows[th].forEach((v,i)=>{const sec=i+1;if(v!=null&&new Set([ax,sec,th]).size===3)out.odds[`${ax}-${sec}-${th}`]=v});
+  if(t.includes("←")){
+    const tail=t.split("←")[1].split(/\r?\n/);const STY=new Set(["先行","追込","叩先","自在","逃","両","追","単騎"]);
+    let g=[];
+    for(const line of tail){const s=line.trim();
+      if(s===""&&line!==""){if(g.length)out.lines.push(g);g=[]}
+      else if(/^\d$/.test(s))g.push({car:+s,style:null});
+      else if(STY.has(s)&&g.length)g[g.length-1].style=s;
+      else if(s)break;}
+    if(g.length)out.lines.push(g);
+  }
+  return out;
+}
+function lineFeatures(groups){const f={};groups.forEach((g,k)=>g.forEach((r,p)=>{f[r.car]={no:k+1,pos:p+1,size:g.length,head:g[0].car,single:g.length===1,style:r.style}}));return f}
+
+/* ---------- ルール ---------- */
+function strength(r,rule,lf){
+  let s=r.score;r.absences.forEach(a=>{s-=(rule.absence[a]||0)});
+  if(rule.line&&lf&&lf[r.car]){const l=lf[r.car];
+    if(l.single)s+=rule.line.single;else if(l.pos===2)s+=rule.line.bante;else if(l.pos===1&&l.size>=3)s+=rule.line.head3;}
+  return s;
+}
+function rank(riders,v,lf){const rule=RULES[v];return riders.slice().sort((a,b)=>strength(b,rule,lf)-strength(a,rule,lf)||(b.top3||0)-(a.top3||0)||a.car-b.car)}
+function expand(A,B,C){const o=[];for(const a of A)for(const b of B)for(const c of C)if(new Set([a,b,c]).size===3)o.push(`${a}-${b}-${c}`);return o}
+function formation(rk){
+  const c=rk.slice(0,5).map(r=>r.car);const[a,b,s,d1,d2]=c;
+  const at=[`${a}-${b}-${s}`];
+  const hon=expand([a],[b,s],[b,s,d1,d2].filter(x=>x!=null)).filter(x=>!at.includes(x));
+  const osa=expand([b],[a],[s,d1].filter(x=>x!=null)).concat(expand([s],[a],[b])).filter(x=>!at.includes(x)&&!hon.includes(x));
+  return {"厚め":at,"本線":hon,"押さえ":osa};
+}
+/* フォーメーション表記（展開すると元とぴったり同じになるときだけまとめる） */
+function exSet(a,b,c){return new Set(expand([...a],[...b],[...c]))}
+function compress(combos){
+  const want=new Set(combos);let parts=[];const byFirst=new Map();
+  combos.forEach(x=>{const[a,b,d]=x.split("-").map(Number);if(!byFirst.has(a))byFirst.set(a,[]);byFirst.get(a).push([b,d])});
+  for(const[a,pairs]of byFirst){
+    const s2=new Set(pairs.map(p=>p[0])),s3=new Set(pairs.map(p=>p[1]));
+    const mine=new Set(pairs.map(p=>`${a}-${p[0]}-${p[1]}`));const e=exSet([a],s2,s3);
+    if(e.size===mine.size&&[...e].every(x=>mine.has(x))){parts.push([new Set([a]),s2,s3]);continue}
+    pairs.forEach(([b,d])=>parts.push([new Set([a]),new Set([b]),new Set([d])]));
+  }
+  let changed=true;
+  while(changed){changed=false;
+    outer:for(let i=0;i<parts.length;i++)for(let j=i+1;j<parts.length;j++){
+      const p=parts[i],q=parts[j];const ep=exSet(...p),eq=exSet(...q);
+      if([...ep].some(x=>eq.has(x)))continue;
+      const cand=[new Set([...p[0],...q[0]]),new Set([...p[1],...q[1]]),new Set([...p[2],...q[2]])];const ec=exSet(...cand);
+      if(ec.size===ep.size+eq.size&&[...ec].every(x=>ep.has(x)||eq.has(x))){parts[i]=cand;parts.splice(j,1);changed=true;break outer}
+    }}
+  const j=s=>[...s].sort((x,y)=>x-y).join("");
+  return parts.map(p=>`${j(p[0])}-${j(p[1])}-${j(p[2])}`).join(" / ");
+}
+function xLen(t){let n=0;for(const ch of t){const cp=ch.codePointAt(0);n+=(cp<=0x10FF||(cp>=0x2000&&cp<=0x200D)||(cp>=0x2010&&cp<=0x201F)||(cp>=0x2032&&cp<=0x2037))?1:2}return n}
+function checkPost(t,lfKnown){
+  const p=[];BANNED.forEach(w=>{if(t.includes(w))p.push(`使わない言葉「${w}」`)});
+  const n=xLen(t);if(n>280)p.push(`文字数オーバー（${n}/280）`);
+  const tiers=[...t.matchAll(/^(厚め|本線|押さえ)\s+(.+)$/gm)].map(m=>m[1]);
+  if(tiers.join()!=="厚め,本線,押さえ")p.push("買い目が「厚め・本線・押さえ」の3つになっていない");
+  if(/^【/m.test(t))p.push("3区分以外の買い目がある");
+  if(t.includes("並び")&&!lfKnown)p.push("並びが分からないのに並びを書いている");
+  return {probs:p,len:n};
+}
+function tenkai(rk,lf,lines,names){
+  if(!lines.length)return "";
+  const s="並びは"+lines.map(g=>g.map(r=>r.car).join("-")).join("／")+"。";
+  const top=rk[0];const l=lf[top.car];if(!l)return s;
+  if(l.single)return s+`◎${top.name}は単騎、得点上位の脚で好位から。`;
+  if(l.pos===2)return s+`◎${top.name}は${names[l.head]||l.head+"番"}の番手から。`;
+  if(l.pos===1)return s+`◎${top.name}はライン先頭で主導権を狙う。`;
+  return s+`◎${top.name}はラインの${l.pos}番手から。`;
+}
+
+/* ---------- 画面 ---------- */
+let state=null;let curV="v2";
+function today(){const d=new Date(Date.now()+9*3600e3);return d.toISOString().slice(0,10)}
+$("date").value=today();
+try{const v=localStorage.getItem("kl_venue");if(v)$("venue").value=v}catch(e){}
+
+document.querySelectorAll("nav button").forEach(b=>b.addEventListener("click",()=>{
+  document.querySelectorAll("nav button").forEach(x=>x.setAttribute("aria-selected",x===b?"true":"false"));
+  ["yosou","result","stats"].forEach(k=>{$("pane-"+k).hidden=("tab-"+k)!==b.id});
+  if(b.id==="tab-result")renderPending();if(b.id==="tab-stats")renderStats();
+}));
+
+$("clear").addEventListener("click",()=>{["card","odds1","odds2"].forEach(i=>$(i).value="");$("race").value="";$("out").hidden=true;$("xpanel").hidden=true;$("parse-warn").textContent=""});
+
+$("run").addEventListener("click",()=>{
+  const warn=[];const {riders,probs}=parseCard($("card").value);
+  if(probs.length){$("parse-warn").textContent=probs.join("／");$("out").hidden=true;$("xpanel").hidden=true;return}
+  let odds={},stamp=null,lines=[];
+  ["odds1","odds2"].forEach(id=>{const m=parseMatrix($(id).value);if(!m)return;if(m.probs.length){warn.push(m.probs.join("、"));return}
+    Object.assign(odds,m.odds);stamp=m.stamp||stamp;if(m.lines.length)lines=m.lines;});
+  const lf=lines.length?lineFeatures(lines):null;
+  if(!lf)warn.push("並びが読めなかったので v2 は使えません（v1 で表示）");
+  try{localStorage.setItem("kl_venue",$("venue").value)}catch(e){}
+  state={riders,odds,stamp,lines,lf,venue:$("venue").value.trim(),date:$("date").value,race:+$("race").value};
+  curV=lf?"v2":"v1";
+  $("parse-warn").textContent=warn.join("／");
+  render();
+});
+
+$("vtabs").addEventListener("click",e=>{const v=e.target.dataset&&e.target.dataset.v;if(!v||!state)return;if(v==="v2"&&!state.lf)return;curV=v;render()});
+
+function pick(v){const rk=rank(state.riders,v,v==="v2"?state.lf:null);return {rk,form:formation(rk)}}
+function render(){
+  const {rk,form}=pick(curV);
+  document.querySelectorAll("#vtabs button").forEach(b=>{b.setAttribute("aria-pressed",b.dataset.v===curV?"true":"false");b.disabled=b.dataset.v==="v2"&&!state.lf});
+  const nm={};state.riders.forEach(r=>nm[r.car]=r.name);
+  $("out-meta").textContent=`${state.venue||"会場未入力"} ${state.date} ${state.race||"?"}R・${state.riders.length}車`+(state.lines.length?`・並び ${state.lines.map(g=>g.map(r=>r.car).join("-")).join(" / ")}`:"")+(state.stamp?`・オッズ ${state.stamp}現在`:"");
+  const sym=["◎","○","▲","△","△"];
+  $("marks").replaceChildren(...rk.slice(0,5).map((r,i)=>{const d=document.createElement("div");d.className="mk";
+    const l=state.lf&&state.lf[r.car];const pos=l?(l.single?"単騎":(l.pos===2?"番手":l.pos===1?"先頭":l.pos+"番手")):"";
+    d.innerHTML=`<span class="sym">${sym[i]}</span><span class="car c${r.car}">${r.car}</span><span></span><span class="meta">${r.score.toFixed(2)}${pos?"・"+pos:""}${r.absences.length?"・前場所"+r.absences.join(""):""}</span>`;
+    d.children[2].textContent=r.name;return d}));
+  $("tiers").replaceChildren(...Object.entries(form).map(([t,cs])=>{const d=document.createElement("div");d.className="tier";
+    const od=cs.map(c=>state.odds[c]!=null?`${c} ${state.odds[c]}倍`:null).filter(Boolean);
+    d.innerHTML=`<b>${t}</b><div><div class="combo"></div><div class="odds"></div></div>`;
+    d.querySelector(".combo").textContent=compress(cs)+`（${cs.length}点）`;
+    d.querySelector(".odds").textContent=od.length?od.join("　"):"オッズ：この表には載っていない";return d}));
+  const tk=curV==="v2"?tenkai(rk,state.lf,state.lines,nm):"";
+  const lines=[`🚴 ${state.venue}競輪 ${state.race}R 3連単 無料予想`,""];
+  if(tk)lines.push(tk,"");
+  rk.slice(0,3).forEach((r,i)=>lines.push(`${sym[i]}${r.car} ${r.name}`));
+  lines.push("△"+rk.slice(3,5).map(r=>`${r.car} ${r.name}`).join(" △"),"");
+  Object.entries(form).forEach(([t,cs])=>lines.push(`${t} ${compress(cs)}`));
+  $("xtext").value=lines.join("\n");
+  $("out").hidden=false;$("xpanel").hidden=false;$("save-status").textContent="";
+  recheck();
+}
+function recheck(){if(!state)return;const r=checkPost($("xtext").value,!!state.lf);const c=$("xcheck");
+  c.className="check"+(r.probs.length?" ng":"");c.textContent=r.probs.length?"チェック：要修正　"+r.probs.join("／"):`チェック：OK（${r.len}/280）`}
+$("xtext").addEventListener("input",recheck);
+
+$("copy").addEventListener("click",async()=>{const t=$("xtext").value;
+  try{await navigator.clipboard.writeText(t);$("save-status").textContent="コピーしました"}
+  catch(e){$("xtext").select();$("save-status").textContent="全体を選択しました。長押しでコピーしてください"}});
+
+/* ---------- 記録（db） ---------- */
+let db=null;let picks=[],results={};
+/* 文書IDは英数字しか使えないので、会場名は16進にして入れる */
+function hex(s){return Array.from(new TextEncoder().encode(s.trim())).map(b=>b.toString(16).padStart(2,"0")).join("")}
+function key(v,d,r,ver){return `${d}_${hex(v)}_${String(r).padStart(2,"0")}${ver?"_"+ver:""}`}
+(async()=>{
+  try{db=await claude.use("db")}catch(e){db=null}
+  if(!db){$("dbnote").textContent="記録機能はサインイン中の claude.ai でだけ使えます（予想とコピーはこのままで使えます）";$("save").disabled=true;return}
+  db.collection("picks").onSnapshot(s=>{picks=s.docs.map(d=>d.data());renderPending();renderStats()},()=>{});
+  db.collection("results").onSnapshot(s=>{results={};s.docs.forEach(d=>results[d.id]=d.data());renderPending();renderStats()},()=>{});
+})();
+
+$("save").addEventListener("click",async()=>{
+  if(!db||!state)return;
+  if(!state.venue||!state.race){$("save-status").textContent="会場とRを入れてください";return}
+  const now=new Date().toISOString();const st=$("save-status");$("save").disabled=true;
+  try{
+    const vers=state.lf?["v1","v2"]:["v1"];let saved=0;
+    for(const v of vers){
+      const ref=db.collection("picks").doc(key(state.venue,state.date,state.race,v));
+      const ex=await ref.get();if(ex.exists)continue;  // あとから書き換えない
+      const {rk,form}=pick(v);
+      const bets=[];Object.entries(form).forEach(([t,cs])=>cs.forEach(c=>bets.push({tier:t,combo:c,stake:STAKE[t],odds:state.odds[c]??null})));
+      await ref.set({venue:state.venue,date:state.date,race:state.race,version:v,created_at:now,posted:v===curV,
+        marks:rk.slice(0,5).map(r=>({car:r.car,name:r.name,score:r.score})),bets,
+        lines:state.lines.map(g=>g.map(r=>r.car).join("-")).join(" / "),odds_stamp:state.stamp||null,
+        x_text:v===curV?$("xtext").value:null});
+      saved++;
+    }
+    st.textContent=saved?`記録しました（${vers.join("・")}）`:"このレースはもう記録済みです（書き換えません）";
+  }catch(e){st.textContent="記録できませんでした："+(e&&e.message||e)}
+  $("save").disabled=false;
+});
+
+function raceKey(p){return key(p.venue,p.date,p.race)}
+function renderPending(){
+  const box=$("pending");if(!box)return;
+  const seen=new Set();const list=picks.filter(p=>{const k=raceKey(p);if(results[k]||seen.has(k))return false;seen.add(k);return true})
+    .sort((a,b)=>(a.date+a.race).localeCompare(b.date+b.race));
+  if(!db){box.innerHTML='<p class="empty">記録機能が使えない画面です</p>';return}
+  if(!list.length){box.innerHTML='<p class="empty">結果待ちのレースはありません。予想タブで「予想を記録する」を押すと、ここに出ます。</p>';return}
+  box.replaceChildren(...list.map(p=>{const d=document.createElement("div");d.className="panel";d.style.padding="10px";
+    const k=raceKey(p);
+    d.innerHTML=`<b></b><div class="row"><label>3連単<input placeholder="例 1-5-2" inputmode="numeric"></label><label>払戻（円）<input type="number" inputmode="numeric" placeholder="例 770"></label><label>&nbsp;<button class="btn">保存</button></label></div>`;
+    d.querySelector("b").textContent=`${p.date} ${p.venue} ${p.race}R`;
+    const [i1,i2]=d.querySelectorAll("input");
+    d.querySelector("button").addEventListener("click",async()=>{
+      const tri=N(i1.value).replace(/[^\d]/g,"");if(tri.length!==3||new Set(tri).size!==3){$("res-status").textContent="3連単は 1-5-2 のように入れてください";return}
+      try{await db.collection("results").doc(k).set({trifecta:`${tri[0]}-${tri[1]}-${tri[2]}`,payout:i2.value?+i2.value:null,entered_at:new Date().toISOString()});
+        $("res-status").textContent=`${p.venue} ${p.race}R の結果を保存しました`}catch(e){$("res-status").textContent="保存できませんでした"}});
+    return d}));
+}
+function calc(ver){
+  const rows=picks.filter(p=>p.version===ver&&results[raceKey(p)]).sort((a,b)=>(a.date+String(a.race).padStart(2,"0")).localeCompare(b.date+String(b.race).padStart(2,"0")));
+  let races=0,hits=0,stake=0,ret=0,streak=0,maxStreak=0,cum=0,peak=0,dd=0;const curve=[];const tier={"厚め":[0,0],"本線":[0,0],"押さえ":[0,0]};
+  rows.forEach(p=>{const r=results[raceKey(p)];if(r.payout==null)return;races++;let s=0,g=0;
+    p.bets.forEach(b=>{s+=b.stake;tier[b.tier][1]++;if(b.combo===r.trifecta){g+=r.payout*b.stake/100;tier[b.tier][0]++}});
+    stake+=s;ret+=g;if(g>0)hits++;streak=g>0?0:streak+1;maxStreak=Math.max(maxStreak,streak);cum+=g-s;peak=Math.max(peak,cum);dd=Math.max(dd,peak-cum);curve.push(cum)});
+  return {races,hits,stake,ret,roi:stake?ret/stake:null,maxStreak,dd,curve,tier};
+}
+function renderStats(){
+  const t=$("stats-table");if(!t)return;const v1=calc("v1"),v2=calc("v2");
+  const f=x=>x==null?"—":x.toLocaleString();const pct=x=>x==null?"—":(x*100).toFixed(1)+"%";
+  t.innerHTML=`<tr><th>項目</th><th>v1 得点のみ</th><th>v2 並びあり</th></tr>`+
+   [["レース数",v1.races,v2.races],["的中レース",v1.hits,v2.hits],["的中率",pct(v1.races?v1.hits/v1.races:null),pct(v2.races?v2.hits/v2.races:null)],
+    ["投資",f(v1.stake)+"円",f(v2.stake)+"円"],["払戻",f(Math.round(v1.ret))+"円",f(Math.round(v2.ret))+"円"],["回収率",pct(v1.roi),pct(v2.roi)],
+    ["最大連敗",v1.maxStreak,v2.maxStreak],["最大ドローダウン",f(Math.round(v1.dd))+"円",f(Math.round(v2.dd))+"円"]]
+   .map(r=>`<tr><td>${r[0]}</td><td>${r[1]}</td><td>${r[2]}</td></tr>`).join("");
+  drawCurve([["v1",v1.curve,"var(--muted)"],["v2",v2.curve,"var(--accent)"]]);
+  const h=$("hist");const seen=new Map();picks.forEach(p=>{const k=raceKey(p);if(!seen.has(k))seen.set(k,{p,ver:{}});seen.get(k).ver[p.version]=p});
+  const list=[...seen.values()].sort((a,b)=>(b.p.date+String(b.p.race).padStart(2,"0")).localeCompare(a.p.date+String(a.p.race).padStart(2,"0")));
+  if(!list.length){h.innerHTML='<tr><td class="empty">まだ記録がありません</td></tr>';return}
+  h.innerHTML="<tr><th>レース</th><th>v1 ◎</th><th>v2 ◎</th><th>結果</th><th>払戻</th></tr>"+list.map(({p,ver})=>{const r=results[raceKey(p)];
+    const hit=x=>x&&r&&x.bets.some(b=>b.combo===r.trifecta)?"◯":(r&&x?"×":"");
+    const esc=s=>String(s).replace(/[&<>]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]));
+    return `<tr><td>${esc(p.date.slice(5))} ${esc(p.venue)} ${p.race}R</td><td>${ver.v1?ver.v1.marks[0].car+" "+hit(ver.v1):"—"}</td><td>${ver.v2?ver.v2.marks[0].car+" "+hit(ver.v2):"—"}</td><td>${r?esc(r.trifecta):"未"}</td><td>${r&&r.payout!=null?r.payout.toLocaleString():"—"}</td></tr>`}).join("");
+}
+function drawCurve(series){
+  const box=$("curve");const all=series.flatMap(s=>s[1]);
+  if(!all.length){box.innerHTML='<p class="empty">結果が入ると、ここに収支の推移が出ます。</p>';return}
+  const W=640,H=180,P=34;const n=Math.max(...series.map(s=>s[1].length));const mn=Math.min(0,...all),mx=Math.max(0,...all);const rng=(mx-mn)||1;
+  const x=i=>P+(W-P-8)*(n<=1?0:i/(n-1));const y=v=>8+(H-28)*(1-(v-mn)/rng);
+  let svg=`<svg viewBox="0 0 ${W} ${H}" width="100%" role="img" aria-label="収支の推移"><line x1="${P}" x2="${W-8}" y1="${y(0)}" y2="${y(0)}" stroke="var(--line)"/><text x="2" y="${y(0)+3}">0</text><text x="2" y="${y(mx)+3}">${Math.round(mx).toLocaleString()}</text><text x="2" y="${y(mn)+3}">${Math.round(mn).toLocaleString()}</text>`;
+  series.forEach(([nm,c,col],k)=>{if(!c.length)return;svg+=`<polyline fill="none" stroke="${col}" stroke-width="2.5" points="${c.map((v,i)=>x(i)+","+y(v)).join(" ")}"/><text x="${P+6+k*60}" y="${H-4}" style="fill:${col}">● ${nm}</text>`});
+  box.innerHTML=svg+"</svg>";
+}
+})();
+</script>
