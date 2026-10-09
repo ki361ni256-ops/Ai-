@@ -74,3 +74,21 @@ class TestMatrixOdds(unittest.TestCase):
         self.assertEqual(o["odds"]["1-2-9"], 23.5)
         self.assertEqual(o["source_timestamp"], "2026-10-09T14:58:00+09:00")
         self.assertEqual(format_lines(o["lines"]), "9-2 / 4-1 / 7-3 / 8-6 / 5")
+
+
+class TestCompress(unittest.TestCase):
+    def test_formation_notation(self):
+        from keirin.yosou import compress, _expand_sets
+        cases = {("1-2-5", "1-5-2"): "1-25-25",
+                 ("4-3-7", "4-3-5", "4-1-3", "4-1-7", "4-1-5"): "4-13-357",
+                 ("5-2-3", "2-5-3"): "25-25-3"}
+        for combos, want in cases.items():
+            self.assertEqual(compress(list(combos)), want)
+        # どんな組合せでも、展開すると元と同じ点数・同じ買い目になる
+        combos = ["3-1-7", "3-7-1", "1-3-7", "7-3-1", "2-1-9", "2-1-4"]
+        parts = compress(combos).split(" / ")
+        got = []
+        for p in parts:
+            a, b, c = ({int(ch) for ch in x} for x in p.split("-"))
+            got += sorted(_expand_sets(a, b, c))
+        self.assertEqual(sorted(got), sorted(combos))

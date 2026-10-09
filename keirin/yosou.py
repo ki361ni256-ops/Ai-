@@ -71,13 +71,63 @@ def odds_view(form, odds):
     return {c: (odds.get(c), pop.get(c)) for t in form.values() for c in t}
 
 
+def _fmt(a, b, c):
+    j = lambda xs: "".join(map(str, sorted(xs)))  # noqa: E731
+    return f"{j(a)}-{j(b)}-{j(c)}"
+
+
+def _expand_sets(a, b, c):
+    return {f"{x}-{y}-{z}" for x in a for y in b for z in c if len({x, y, z}) == 3}
+
+
 def compress(combos):
-    """1着ごとにまとめて「1-25-257」形式に近づける（読みやすさ用）。"""
-    by = {}
+    """買い目をフォーメーション表記にまとめる（例: 1-2-5 と 1-5-2 → 1-25-25）。
+    まとめた結果を展開して、元の買い目と完全に一致するときだけまとめる（点数が変わらない）。"""
+    combos = list(dict.fromkeys(combos))
+    want = set(combos)
+    parts = []
+    by_first = {}
     for c in combos:
-        a, b, d = c.split("-")
-        by.setdefault((a, b), []).append(d)
-    return " / ".join(f"{a}-{b}-{''.join(sorted(ds))}" for (a, b), ds in by.items())
+        a, b, d = (int(x) for x in c.split("-"))
+        by_first.setdefault(a, []).append((b, d))
+    for a, pairs in by_first.items():
+        s2, s3 = {b for b, _ in pairs}, {d for _, d in pairs}
+        mine = {f"{a}-{b}-{d}" for b, d in pairs}
+        if _expand_sets({a}, s2, s3) == mine:
+            parts.append(({a}, s2, s3))
+            continue
+        by_second = {}
+        for b, d in pairs:
+            by_second.setdefault(b, set()).add(d)
+        groups = []
+        for b, ds in by_second.items():
+            for g in groups:
+                if g[2] == ds and _expand_sets({a}, g[1] | {b}, ds) == {f"{a}-{y}-{z}" for y in g[1] | {b} for z in ds if len({a, y, z}) == 3} and all(
+                        f"{a}-{y}-{z}" in mine for y in g[1] | {b} for z in ds if len({a, y, z}) == 3):
+                    g[1].add(b)
+                    break
+            else:
+                groups.append(({a}, {b}, set(ds)))
+        parts += groups
+    # 2つのまとまりを合わせても、展開した買い目が2つの和とちょうど同じならまとめる（重複買いを作らない）
+    merged = [tuple(set(x) for x in p) for p in parts]
+    changed = True
+    while changed:
+        changed = False
+        for i in range(len(merged)):
+            for j in range(i + 1, len(merged)):
+                p, q = merged[i], merged[j]
+                cand = (p[0] | q[0], p[1] | q[1], p[2] | q[2])
+                ep, eq = _expand_sets(*p), _expand_sets(*q)
+                if not (ep & eq) and _expand_sets(*cand) == ep | eq:
+                    merged[i] = cand
+                    del merged[j]
+                    changed = True
+                    break
+            if changed:
+                break
+    assert set().union(*[_expand_sets(*m) for m in merged]) == want if merged else True
+    return " / ".join(_fmt(*m) for m in merged)
 
 
 def render_x(venue, race_no, ranked, form, odds=None):
