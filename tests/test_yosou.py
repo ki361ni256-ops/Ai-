@@ -92,3 +92,19 @@ class TestCompress(unittest.TestCase):
             a, b, c = ({int(ch) for ch in x} for x in p.split("-"))
             got += sorted(_expand_sets(a, b, c))
         self.assertEqual(sorted(got), sorted(combos))
+
+
+class TestChecker(unittest.TestCase):
+    def test_check_post(self):
+        from keirin.checker import check_post, x_weighted_length
+        good = "🚴 四日市競輪 6R\n\n◎4 山本\n\n厚め 4-3-1\n本線 4-13-357\n押さえ 3-4-17 / 1-4-3"
+        self.assertEqual(check_post(good), [])
+        self.assertEqual(x_weighted_length("ab"), 2)
+        self.assertEqual(x_weighted_length("あい"), 4)
+        bad = good + "\n【荒れた場合】\n137-137-17\n並びは7-3-1"
+        p = check_post(bad, lines_known=False)
+        self.assertTrue(any("3区分以外" in x for x in p))
+        self.assertTrue(any("並び" in x for x in p))
+        dup = "厚め 4-3-1\n本線 4-3-1\n押さえ 1-4-3"
+        self.assertTrue(any("重複" in x for x in check_post(dup)))
+        self.assertTrue(any("文字数" in x for x in check_post(good + "あ" * 200)))

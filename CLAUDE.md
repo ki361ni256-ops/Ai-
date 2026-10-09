@@ -96,6 +96,8 @@ DB設計書.md / データ蓄積システム.md / features.md … STEP 4〜6 の
 scripts/run_backtest.py   … walk-forward バックテストの実行
 scripts/yosou.py / keirin/yosou.py / keirin/card_parser.py / keirin/odds_parser.py … 運用中の予想の仕組み
 品質改善ループ.md          … 予想の記録・監査・改善の決まり
+仕組み化ロードマップ.md     … 役割（予想・チェック・記録）と今後の進め方
+.claude/agents/keirin-checker.md … チェック担当（予想のたびに投稿前チェック、結果のたびにフィードバック）
 予想記録/                  … 予想の入力（出走表テキスト）と記録
 db/schema.sql              … SQLite のスキーマ（keirin.db は scripts/init_db.py で作成）
 keirin/                    … DB 操作・取得・特徴量のコード
