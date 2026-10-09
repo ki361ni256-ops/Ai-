@@ -1,0 +1,16 @@
+# テストだけを実行する（データの自動取得はしない。取得の自動化は、提供元の規約確認後に別ワークフローで低頻度から始める）
+name: tests
+on:
+  push:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: python -m unittest discover -s tests -t . -v
+      - run: python scripts/init_db.py /tmp/keirin.db

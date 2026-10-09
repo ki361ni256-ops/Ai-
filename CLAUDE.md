@@ -83,7 +83,10 @@
 CLAUDE.md                  … このファイル（最上位ルール）
 データ取得可能性監査.md      … STEP 2 の監査結果
 データ取得PoC.md            … STEP 3 の結果と判定
-db/schema.sql              … SQLite のスキーマ（時刻4区分を含む）
+DB設計書.md / データ蓄積システム.md / features.md … STEP 4〜6 の設計と監査
+db/schema.sql              … SQLite のスキーマ（keirin.db は scripts/init_db.py で作成）
+keirin/                    … DB 操作・取得・特徴量のコード
+tests/                     … テスト（架空データ。python3 -m unittest discover -s tests -t .）
 data/                      … 取得データ（大きいものは Git 管理外）
 logs/                      … 取得ログ（Git 管理外）
 ```
