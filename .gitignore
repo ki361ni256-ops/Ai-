@@ -1,0 +1,4 @@
+data/
+logs/
+*.db
+__pycache__/
