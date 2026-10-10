@@ -175,3 +175,35 @@ def replacement(audio, lines_nos, src):
     if len(groups) != len(lines_nos):
         raise SystemExit(f"差し替え録音の区切りが {len(groups)} 個で、指定の行数 {len(lines_nos)} と合いません")
     return {n: dict(chunks=g, start=g[0][0], end=g[-1][1], src=src) for n, g in zip(lines_nos, groups)}
+
+
+RETAKE_GAP = 1.5   # 行の中でこれ以上の間があれば「言い直し」の区切りの候補
+
+def drop_retakes(res, gap=RETAKE_GAP):
+    """言い直し（間をあけて行の頭から読み直し）の、前の言いかけを捨てる。
+    行の中を長い間で分け、後ろだけ残したほうが見込みの長さにはっきり近づく場合だけ、前を捨てる。捨てた行の一覧を返す"""
+    import math
+    dropped = []
+    for r in res:
+        if r.get("fixed"): continue
+        ch = r["chunks"]
+        cuts = [i + 1 for i in range(len(ch) - 1) if ch[i + 1][0] - ch[i][1] >= gap]
+        if not cuts: continue
+        e = r["expected"]
+        score = lambda part: abs(math.log((sum(b - a for a, b in part) + 0.3) / (e + 0.3)))
+        best, keep = score(ch), (0, len(ch))
+        for c in cuts:
+            for rng in [(c, len(ch))]:   # 後ろだけ残す（読み直しは行の頭から、の決まり）
+                part = ch[rng[0]:rng[1]]
+                sc = score(part)
+                if sc < best - 0.2 and 0.65 <= (sum(b - a for a, b in part) / e) <= 1.45:
+                    best, keep = sc, rng
+        if keep != (0, len(ch)):
+            lost = ch[:keep[0]] + ch[keep[1]:]
+            r["chunks"] = ch[keep[0]:keep[1]]
+            r["start"], r["end"] = r["chunks"][0][0], r["chunks"][-1][1]
+            r["speech"] = sum(b - a for a, b in r["chunks"])
+            r["dropped"] = round(sum(b - a for a, b in lost), 1)
+            r["dropped_where"] = "前" if keep[0] > 0 else "後ろ"
+            dropped.append(r["no"])
+    return dropped

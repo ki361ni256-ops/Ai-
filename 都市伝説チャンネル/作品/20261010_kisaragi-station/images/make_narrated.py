@@ -5,7 +5,7 @@
 import sys, pathlib
 HERE = pathlib.Path(__file__).parent
 sys.path.insert(0, str(HERE.parents[2] / "素材" / "tools"))
-from narrate import script_lines, align, rebuild_audio, warp, render, replacement
+from narrate import script_lines, align, rebuild_audio, warp, render, replacement, drop_retakes
 from make_video import seq, cuts
 
 EP = HERE.parent
@@ -20,6 +20,7 @@ def run(kind, md, audio, folder, size, name):
         extra.append(EP / "audio" / fn)
         for n, rep in replacement(EP / "audio" / fn, nos, len(extra)).items():
             res[n - 1].update(rep, speech=sum(b - a for a, b in rep["chunks"]), inner_max=0.0, fixed=fn)
+    drop_retakes(res)   # 間をあけて読み直した行は、前の言いかけを捨てる
     wav = EP / "audio" / f"{name}_ナレーション.wav"
     starts, real_end = rebuild_audio(EP / "audio" / audio, res, lines, wav, extra)
     items, t, out = [], 0.0, []
@@ -30,7 +31,8 @@ def run(kind, md, audio, folder, size, name):
     rep = [f"# 当てはめ結果：{name}\n", "| 番号 | 録音内の位置 | 声の長さ（秒） | 見込み（秒） | 動画内の位置 | 気になる点 | 本文 |\n|---|---|---|---|---|---|---|\n"]
     for r, s in zip(res, starts):
         note = [f"録り直し（{r['fixed']}）"] if r.get("fixed") else []
-        if r["inner_max"] > 1.2: note.append(f"行の途中に{r['inner_max']:.1f}秒の間（言い直し？）")
+        if r.get("dropped"): note.append(f"言い直しとみて前の{r['dropped']}秒を削除")
+        elif r["inner_max"] > 1.2: note.append(f"行の途中に{r['inner_max']:.1f}秒の間（言い直し？）")
         if r["speech"] > r["expected"] * 1.5: note.append("見込みより長い")
         if r["speech"] < r["expected"] * 0.6: note.append("見込みより短い")
         m, sec_ = divmod(r["start"], 60); m2, s2 = divmod(s, 60)
