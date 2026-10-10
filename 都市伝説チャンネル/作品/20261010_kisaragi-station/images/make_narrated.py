@@ -7,8 +7,27 @@ HERE = pathlib.Path(__file__).parent
 sys.path.insert(0, str(HERE.parents[2] / "素材" / "tools"))
 from narrate import script_lines, align, rebuild_audio, warp, render, replacement, drop_retakes
 from make_video import seq, cuts
+from sound import mix
 
 EP = HERE.parent
+def T(m): a, b = m.split(":"); return int(a) * 60 + float(b)
+# BGM と効果音（04_演出.md 6章。時間は台本上の時刻で書き、録音の長さに合わせて自動でずらす）
+BGM = {
+    "L": [("A", T("0:21"), T("3:51")), ("A", T("4:01"), T("4:41")), ("B", T("4:41"), T("4:52")), ("C", T("5:18"), T("6:50")),
+          ("D", T("6:50"), T("9:44")), ("E", T("9:44"), T("11:35")), ("F", T("11:35"), T("14:38")), ("A", T("14:38"), T("15:01"))],
+    "S": [("A", T("0:00"), T("0:36")), ("D", T("0:41"), T("1:00"))],
+}
+SFX = {
+    "L": [("train", T("0:00"), 1, 0), ("pop", T("0:04"), 1, 0), ("click", T("0:09"), 9, .1), ("train", T("0:38"), 1, 0), ("pop", T("1:07"), 1, 0),
+          ("rewind", T("1:33"), 1, 0), ("click", T("2:05"), 9, .1), ("tag", T("2:38"), 2, .4), ("paper", T("2:59"), 3, .7), ("drum", T("3:38"), 1, 0),
+          ("wind", T("3:45"), 1, 0), ("car", T("4:12"), 1, 0), ("clockstop", T("4:55"), 1, 0), ("clockstop", T("6:43"), 1, 0), ("flip", T("6:50"), 1, 0),
+          *[("pin", T(x), 1, 0) for x in ["7:00", "7:12", "7:34", "8:04", "8:16", "8:38", "8:48", "9:08"]],
+          ("flip", T("11:30"), 1, 0), ("tick", T("11:52"), 16, 1.0), ("pop", T("12:09"), 1, 0), ("rewind", T("13:20"), 1, 0),
+          *[("tag", T(x), 1, 0) for x in ["13:33", "13:40", "13:47", "13:59", "14:06", "14:09", "14:12", "14:16"]], ("clockstop", T("13:46"), 1, 0),
+          ("train", T("15:01"), 1, 0)],
+    "S": [("click", T("0:00"), 3, .8), ("click", T("0:13"), 9, .1), ("drum", T("0:23"), 1, 0), ("clockstop", T("0:30"), 1, 0), ("pin", T("0:41"), 4, 2.5)],
+}
+
 # 録り直し：{録音ファイル: [差し替える行の番号（録音の中の順）]}
 FIXES = {"L": {"修正_1.m4a": [63, 64]}, "S": {}}
 
@@ -27,7 +46,9 @@ def run(kind, md, audio, folder, size, name):
     for img, d in seq(kind):
         items.append((img, t, d)); t += d
     f = warp(lines, starts, t, real_end)
-    rows = render(items, HERE / folder, size, wav, HERE / "video" / f"{name}_ナレーション入り.mp4", f)
+    final = EP / "audio" / f"{name}_完成音声.wav"
+    mix(wav, final, BGM[kind], SFX[kind], f)
+    rows = render(items, HERE / folder, size, final, HERE / "video" / f"{name}_完成版.mp4", f)
     rep = [f"# 当てはめ結果：{name}\n", "| 番号 | 録音内の位置 | 声の長さ（秒） | 見込み（秒） | 動画内の位置 | 気になる点 | 本文 |\n|---|---|---|---|---|---|---|\n"]
     for r, s in zip(res, starts):
         note = [f"録り直し（{r['fixed']}）"] if r.get("fixed") else []
