@@ -52,7 +52,7 @@ L('L16', frame({ body: vAxis({ items: [ax1], x: 760, top: 300 }) + cnt({ time: '
 L('L17', frame({ body: scene('G02') + cnt({ time: '23:23' }) + telop('23:23 電車が20分ほど駅に止まらない', 'fact', { src: '東洋経済オンラインの記事による・要約' }) + IMG }));
 L('L18', frame({ body: vAxis({ items: [ax1, ax2], x: 760, top: 300, gap: 260 }) + abs(`left:735px;top:330px;width:56px;height:200px;background:linear-gradient(rgba(232,168,74,0),rgba(232,168,74,.55),rgba(232,168,74,0));border-radius:28px`, '') + abs(`left:830px;top:400px;font-size:40px;font-weight:900;color:${C.amber}`, '午後11時20分ごろ（中日新聞）') + cnt({ time: '23:23' }) }));
 L('L19', frame({ body: vAxis({ items: [ax1, { label: '午後11時20分ごろ（幅のある言い方）', kind: 'fact' }, ax2], x: 760, top: 280, gap: 170 }) + cnt({ time: '23:23' }) }));
-L('L20', frame({ body: vAxis({ items: [{ ...ax1, tag: 'check' }, { ...ax2, tag: 'check' }], x: 760, top: 300, gap: 200 }) + cnt({ time: '23:23' }) + telop('※時刻と書き込みの対応：記事本文では未確認', 'unknown') }));
+L('L20', frame({ body: vAxis({ items: [{ ...ax1, tag: 'ok' }, { ...ax2, tag: 'ok' }], x: 760, top: 300, gap: 200 }) + cnt({ time: '23:23' }) + telop('時刻と書き込みの対応：記事本文で確認', 'fact') }));
 L('L21', frame({ body: vAxis({ items: [ax1, ax2], x: 500, top: 300, gap: 200 }) + abs('right:260px;top:300px', `<svg width="520" height="520" viewBox="0 0 100 100"><rect x="62" y="40" width="30" height="20" rx="2" fill="#7FD3FF" opacity=".55"/><circle cx="38" cy="34" r="10" fill="#05090D"/><path d="M22 92 Q24 52 38 48 Q52 52 56 70 L64 66 L66 72 L54 80 L52 92 Z" fill="#05090D"/><path d="M60 60 L92 60 L92 62 L60 62Z" fill="#05090D"/></svg>`) + abs('right:120px;top:330px;width:340px;height:300px;background:radial-gradient(rgba(127,211,255,.25),transparent 70%)', '') + cnt({ time: '23:23' }) }));
 L('L22', frame({ body: abs('inset:0;display:flex;align-items:center;justify-content:center;gap:90px', [0, 1, 2].map(i => `<div style="width:300px;height:400px;background:#EDE8DC;transform:rotate(${(i - 1) * 3}deg);padding:40px 30px">${[70, 90, 60, 80, 50].map((w, j) => `<div style="height:14px;margin-bottom:26px;border-radius:7px;background:#999;width:${(w + i * 7 * (j % 2 ? 1 : -1)) % 100}%"></div>`).join('')}</div>`).join('<div style="font-size:80px;color:#E8A84A">→</div>')) + cnt({ time: '23:23' }) }));
 L('L23', frame({ body: vAxis({ items: [ax1, ax2], x: 760, top: 200, gap: 160, whiteBelow: 560 }) + cnt({ time: '23:23' }) }));
@@ -118,7 +118,7 @@ L('L61', frame({ bg: C.light, grainOp: 0, body: setsu + cl + abs('left:0;right:0
 L('L62', frame({ bg: C.light, grainOp: 0, body: setsu + cl + abs('left:180px;top:200px', card('反論：トンネルがない？（とされる）', '#8A6D00')) + vAxis({ items: [{ t: '??:??', label: '③ 太鼓のような音' }, { t: '??:??', label: '④ 老人が消える（要約）' }, { t: '??:??', label: '⑤ トンネル（徒歩の場面とされる）' }], x: 760, top: 470, gap: 150, light: true }) + abs(`left:690px;top:740px;width:1000px;height:90px;border:6px solid ${C.cyan};border-radius:14px`, '') }));
 L('L63', frame({ bg: C.light, grainOp: 0, body: setsu + cl + abs('left:0;right:0;top:380px;display:flex;flex-direction:column;align-items:center;gap:40px', card('別の参加者が挙げた？（個人サイトの説）', '#8A6D00') + card('※未確認', '#777', `border:3px dashed ${C.gray}`)) }));
 L('L64', frame({ bg: C.light, grainOp: 0, body: setsu + cl + abs('left:0;right:0;top:440px;display:flex;justify-content:center', card('投稿者がモデルを認めた記録：見つかっていない', '#111', `font-size:60px;border-bottom:8px solid ${C.cyan}`)) }));
-L('L65', frame({ bg: C.light, grainOp: 0, body: setsu + cl + abs('left:200px;right:200px;top:280px;display:flex;flex-direction:column;gap:40px', card('遠州鉄道公式サイト「きさらぎ駅」ページ：<br>「実際には存在しない鉄道駅」<span style="font-size:30px;color:#777">（要原文確認）</span>') + card('遠州鉄道公式X（@et_train）の投稿より：<br>「ちゃんと各駅止まりますので」<span style="font-size:30px;color:#777">（要原文確認）</span>')) }));
+L('L65', frame({ bg: C.light, grainOp: 0, body: setsu + cl + abs('left:200px;right:200px;top:280px;display:flex;flex-direction:column;gap:40px', card('遠州鉄道公式サイト「きさらぎ駅」ページ：<br>「実際には存在しない鉄道駅」') + card('遠州鉄道公式X（@et_train）の投稿より：<br>「ちゃんと各駅止まりますので」<span style="font-size:30px;color:#777">（要原文確認）</span>')) }));
 L('L66', frame({ bg: C.light, grainOp: 0, body: setsu + cl + bigText('舞台とされる駅', { size: 90, color: '#111', top: 300 }) + abs('left:0;right:0;top:640px;display:flex;justify-content:center', `<div style="background:${C.orange};color:#fff;font-weight:900;font-size:52px;padding:30px 60px;border-radius:16px">※駅・線路での迷惑行為や危険な行為はやめましょう</div>`) }));
 L('L67', frame({ bg: C.navy, body: abs('inset:0;display:flex;align-items:center;justify-content:center', seg7('23:14', { h: 240 })) }));
 // ---------- 第6章（考察） ----------
@@ -143,7 +143,7 @@ function Lshape({ stage }) {
   h += pt(X0, 270) + abs(`right:${1920 - X0 + 40}px;top:246px`, seg7('23:23', { h: 46, off: 'transparent' }));
   h += abs(`right:${1920 - X0 + 40}px;top:400px`, seg7('??:??', { h: 46, on: C.gray, off: 'transparent' }));
   h += pt(X0, 560) + abs(`right:${1920 - X0 + 40}px;top:536px`, seg7('03:44', { h: 46, off: 'transparent' }));
-  if (stage >= 1) h += lab(X0, 180, `最初の書き込み ${tag('check', { size: 26 })}`) + lab(X0, 270, `電車の様子 ${tag('check', { size: 26 })}`);
+  if (stage >= 1) h += lab(X0, 180, `最初の書き込み ${tag('ok', { size: 26 })}`) + lab(X0, 270, `電車の様子 ${tag('ok', { size: 26 })}`);
   if (stage >= 2) h += lab(X0, 410, `①〜⑥ 途中の時刻 ${tag('unknown', { size: 26 })}`);
   if (stage >= 3) h += lab(X0, 560, `最後の書き込み ${tag('check', { size: 26 })}　実話か創作か ${tag('unknown', { size: 26 })}`);
   const yrs = [[2014, 'unknown'], [2018, 'check'], [2020, 'check'], [2021, 'check'], [2022, 'check'], [2025, 'check']];
@@ -153,7 +153,7 @@ function Lshape({ stage }) {
   return h;
 }
 L('L75', frame({ bg: C.black, body: Lshape({ stage: 0 }) + telop('3:44で止まった記録と、その後の年', 'plain', { bottom: 300 }) }));
-L('L76', frame({ bg: C.black, body: Lshape({ stage: 1 }) + telop('23:14 最初の書き込み／23:23 電車の様子（報道による・対応は要確認）', 'fact', { bottom: 50, size: 42 }) }));
+L('L76', frame({ bg: C.black, body: Lshape({ stage: 1 }) + telop('23:14 最初の書き込み／23:23 電車の様子（報道による・記事本文で確認）', 'fact', { bottom: 50, size: 42 }) }));
 L('L77', frame({ bg: C.black, body: Lshape({ stage: 2 }) + telop('途中の時刻：不明', 'unknown', { bottom: 50 }) }));
 L('L78', frame({ bg: C.black, body: Lshape({ stage: 3 }) + telop('3:44 最後の書き込み（報道による）／実話か創作か：不明', 'fact', { bottom: 50, size: 44 }) }));
 L('L79', frame({ bg: C.black, body: Lshape({ stage: 4 }) + telop('2014 かたす駅：出どころはまとめサイトのみ', 'unknown', { bottom: 50, size: 44 }) }));
