@@ -50,7 +50,7 @@ def main(ep, name):
     for i, (t, x, new) in enumerate(S):
         out.append(f"\n**{i + 1:03d}**　{ruby(x)}\n")
     out.append(f"\n（ショート：全{len(S)}行）\n")
-    dst = pathlib.Path(__file__).parents[1] / "収録台本" / f"{name}.md"
+    dst = pathlib.Path(__file__).resolve().parents[2] / "収録台本" / f"{name}.md"
     dst.write_text("".join(out)); print(dst, len(L), len(S))
 
 if __name__ == "__main__":
