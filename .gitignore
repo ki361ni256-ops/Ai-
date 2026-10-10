@@ -1,5 +1,2 @@
-data/
-logs/
-*.db
-!yosou.db
 __pycache__/
+.DS_Store
