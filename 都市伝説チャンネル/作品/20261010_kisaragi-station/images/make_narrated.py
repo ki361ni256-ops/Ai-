@@ -32,7 +32,7 @@ SFX = {
 }
 
 # 録り直し：{録音ファイル: [差し替える行の番号（録音の中の順）]}
-FIXES = {"L": {"修正_1.m4a": [63, 64]}, "S": {}}
+FIXES = {"L": {"修正_1.m4a": [63, 64], "修正_2.m4a": [26, 93, 111]}, "S": {}}
 
 def run(kind, md, audio, folder, size, name):
     lines = script_lines(EP / md)
