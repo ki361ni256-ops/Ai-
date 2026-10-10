@@ -130,3 +130,54 @@ def mix(narration_wav, out_wav, bgm_sections, sfx_hits, f):
         x = norm(sfx(name), db(SFX_LEVEL))
         for i in range(n): place(bed, x, f(at) + i * step)
     write_wav(out_wav, nar + bed)
+
+
+def load_audio(path):
+    """mp3 などを 48kHz モノラルの配列で読む"""
+    import subprocess
+    raw = subprocess.run(["ffmpeg", "-hide_banner", "-loglevel", "error", "-i", str(path), "-f", "s16le", "-ac", "1", "-ar", str(SR), "-"], capture_output=True, check=True).stdout
+    return np.frombuffer(raw, "<i2").astype(np.float64) / 32767
+
+def loop_track(x, length, xfade=3.0):
+    """曲を length サンプルまで、つなぎ目を xfade 秒で重ねながら繰り返す"""
+    n = int(xfade * SR); out = np.zeros(length); pos = 0
+    ramp = np.linspace(0, 1, n)
+    while pos < length:
+        seg = x.copy()
+        if pos > 0: seg[:n] *= ramp
+        seg[-n:] *= ramp[::-1]
+        place(out, seg, pos / SR)
+        pos += len(x) - n
+    return out
+
+def duck_gain(nar, speak_db=-9.0, attack=0.08, release=0.6):
+    """ナレーションが鳴っている間だけ BGM を speak_db 下げるゲイン（なめらかに上下）"""
+    hop = int(0.02 * SR); n = len(nar) // hop + 1
+    env = np.array([np.sqrt(np.mean(nar[i*hop:(i+1)*hop] ** 2) + 1e-12) for i in range(n)])
+    talking = env > db(-40)
+    g = np.ones(n); lo = db(speak_db); cur = 1.0
+    a, r = np.exp(-0.02 / attack), np.exp(-0.02 / release)
+    hold = 0
+    for i in range(n):
+        if talking[i]: hold = 15          # 0.3秒は下げたまま（言葉の切れ目でふわふわしない）
+        target = lo if hold > 0 else 1.0
+        hold -= 1
+        k = a if target < cur else r
+        cur = target + (cur - target) * k
+        g[i] = cur
+    return np.repeat(g, hop)[:len(nar)]
+
+def mix_track(narration_wav, out_wav, track, sfx_hits, f, level_db=-24.0, fade_in=2.0, fade_out=4.0):
+    """1曲を通しで流す版。曲の基準の大きさ（RMS）を level_db にそろえ、話している間は下げる"""
+    nar = read_wav(narration_wav)
+    x = load_audio(track)
+    x = x / (np.sqrt(np.mean(x ** 2)) + 1e-9) * db(level_db)
+    bed = loop_track(x, len(nar))
+    bed = fade(bed, fade_in, fade_out) * duck_gain(nar)
+    for name, at, n, step in sfx_hits:
+        s = norm(sfx(name), db(SFX_LEVEL))
+        for i in range(n): place(bed, s, f(at) + i * step)
+    out = nar + bed
+    peak = np.max(np.abs(out))
+    if peak > 0.97: out *= 0.97 / peak
+    write_wav(out_wav, out)

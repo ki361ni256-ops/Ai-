@@ -7,7 +7,8 @@ HERE = pathlib.Path(__file__).parent
 sys.path.insert(0, str(HERE.parents[2] / "素材" / "tools"))
 from narrate import script_lines, align, rebuild_audio, warp, render, replacement, drop_retakes
 from make_video import seq, cuts
-from sound import mix
+from sound import mix, mix_track
+TRACK = HERE.parents[2] / "素材" / "bgm" / "Whole_Tone_Limbo_-_Godmode.mp3"   # 本人が選んだ曲（YouTube オーディオライブラリ）。None なら自作BGM
 
 EP = HERE.parent
 def T(m): a, b = m.split(":"); return int(a) * 60 + float(b)
@@ -47,7 +48,8 @@ def run(kind, md, audio, folder, size, name):
         items.append((img, t, d)); t += d
     f = warp(lines, starts, t, real_end)
     final = EP / "audio" / f"{name}_完成音声.wav"
-    mix(wav, final, BGM[kind], SFX[kind], f)
+    if TRACK: mix_track(wav, final, TRACK, SFX[kind], f)
+    else: mix(wav, final, BGM[kind], SFX[kind], f)
     rows = render(items, HERE / folder, size, final, HERE / "video" / f"{name}_完成版.mp4", f)
     rep = [f"# 当てはめ結果：{name}\n", "| 番号 | 録音内の位置 | 声の長さ（秒） | 見込み（秒） | 動画内の位置 | 気になる点 | 本文 |\n|---|---|---|---|---|---|---|\n"]
     for r, s in zip(res, starts):
