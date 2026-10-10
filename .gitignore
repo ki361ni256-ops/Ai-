@@ -6,3 +6,4 @@ __pycache__/
 都市伝説チャンネル/作品/*/audio/*.filter.txt
 都市伝説チャンネル/作品/*/images/video/*ナレーション入り.txt
 都市伝説チャンネル/作品/*/images/video/*完成版.txt
+都市伝説チャンネル/作品/*/audio/*_雑音除去.wav

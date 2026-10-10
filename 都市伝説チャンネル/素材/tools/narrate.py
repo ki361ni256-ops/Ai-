@@ -98,6 +98,15 @@ def align(audio, lines, min_boundary=0.7):
         res.append(dict(no=i + 1, start=part[0][0], end=part[-1][1], speech=pre[j] - pre[k], expected=exp[i], chunks=part, inner_max=max(inner) if inner else 0.0))
     return res
 
+DENOISE = "highpass=f=100:poles=2,highpass=f=100:poles=2,afftdn=nr=12:nf=-55:tn=1,agate=threshold=0.008:ratio=3:range=0.2:attack=10:release=200,lowpass=f=12000"   # 低い唸り（話している間のゴーッという音）を強めに切り、言葉の合間の部屋の音を下げる
+
+def denoise(src):
+    """録音全体の雑音を抑えた wav を作る（同じ名前の _雑音除去.wav があれば使い回す）"""
+    src = pathlib.Path(src); out = src.with_name(src.stem + "_雑音除去.wav")
+    if not out.exists() or out.stat().st_mtime < src.stat().st_mtime:
+        subprocess.run(["ffmpeg", "-hide_banner", "-loglevel", "error", "-y", "-i", str(src), "-af", DENOISE, "-ac", "1", "-ar", "48000", str(out)], check=True)
+    return out
+
 INNER_MAX = 1.2   # 行の途中の間がこれより長ければ INNER_GAP 秒に詰める（言いよどみ・言い直しの間）
 INNER_GAP = 0.45
 
@@ -126,7 +135,7 @@ def rebuild_audio(audio, res, lines, out_wav, extra=()):
         labels.append(f"[p{k}]")
     fc = ";".join(filt) + ";" + "".join(labels) + f"concat=n={len(labels)}:v=0:a=1,loudnorm=I=-16:TP=-1.5:LRA=11[out]"
     script = pathlib.Path(out_wav).with_suffix(".filter.txt"); script.write_text(fc)
-    subprocess.run(["ffmpeg", "-hide_banner", "-loglevel", "error", "-y", *sum([["-i", str(x)] for x in [audio, *extra]], []), "-filter_complex_script", str(script), "-map", "[out]", "-ar", "48000", "-ac", "1", str(out_wav)], check=True)
+    subprocess.run(["ffmpeg", "-hide_banner", "-loglevel", "error", "-y", *sum([["-i", str(denoise(x))] for x in [audio, *extra]], []), "-filter_complex_script", str(script), "-map", "[out]", "-ar", "48000", "-ac", "1", str(out_wav)], check=True)
     script.unlink()
     return starts, t + 1.2
 
