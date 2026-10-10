@@ -21,6 +21,7 @@ for line in SPEC.read_text().splitlines():
         cuts[k].append((f"{k}{int(n):02d}", sec(a), sec(b)))
 
 CHAPTER = {"L14", "L24", "L39", "L48", "L59", "L68"}  # 先頭 2.5 秒は章タイトル（…a.png）
+REPLACE = {"L74": "L73"}  # 06_編集長判断：3:44 の画の繰り返しを減らすため L73 を 13:20 まで延ばす
 SPLIT = {"L11": [("L11", 8), ("L11b", None)], "S05": [("S05a", 3), ("S05b", 3), ("S05c", None)]}
 
 def seq(kind):
@@ -34,6 +35,8 @@ def seq(kind):
             for name, d in SPLIT[cid]:
                 d = rest if d is None else d
                 items.append((name, d)); rest -= d
+        elif cid in REPLACE:
+            items.append((REPLACE[cid], dur))
         else:
             items.append((cid, dur))
     return items
