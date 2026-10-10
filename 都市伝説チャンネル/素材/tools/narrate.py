@@ -28,7 +28,7 @@ def script_lines(md):
         if intable and l.startswith("|---"): continue
         if intable and l.startswith("|"):
             c = [x.strip() for x in l.strip("|").split("|")]
-            if len(c) >= 2 and c[1] and c[1] not in ("—", "―", "（無音）") and re.match(r"\d+:\d\d", c[0]):
+            if len(c) >= 2 and c[1] and c[1] not in ("—", "―", "（無音）") and not re.fullmatch(r"（[^）]*なし[^）]*）", c[1]) and re.match(r"\d+:\d\d", c[0]):
                 out.append((sec(c[0]), c[1].replace("**", ""), newsec)); newsec = False
         elif intable and not l.strip(): intable = False
     return out
