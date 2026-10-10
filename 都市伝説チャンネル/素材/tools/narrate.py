@@ -101,7 +101,8 @@ def align(audio, lines, min_boundary=0.7):
 INNER_MAX = 1.2   # 行の途中の間がこれより長ければ INNER_GAP 秒に詰める（言いよどみ・言い直しの間）
 INNER_GAP = 0.45
 
-def rebuild_audio(audio, res, lines, out_wav):
+def rebuild_audio(audio, res, lines, out_wav, extra=()):
+    """extra: 差し替え用の録音ファイルの一覧。res の要素に src=1,2… があればその録音から切り出す"""
     """行のあいだの間（と行の途中の長すぎる間）を詰めたナレーション音声を作り、各行の新しい開始時刻を返す"""
     pieces, starts, t = [], [], 0.0   # pieces: (種類, 値) 種類 'gap'=秒 / 'seg'=(a,b)
     for i, r in enumerate(res):
@@ -117,15 +118,15 @@ def rebuild_audio(audio, res, lines, out_wav):
         for gi, gr in enumerate(groups):
             if gi: pieces.append(("gap", INNER_GAP)); t += INNER_GAP
             a, b = max(gr[0][0] - 0.06, 0), gr[-1][1] + 0.12
-            pieces.append(("seg", (a, b))); t += b - a
+            pieces.append(("seg", (a, b, r.get("src", 0)))); t += b - a
     filt, labels = [], []
     for k, (kind, v) in enumerate(pieces):
         if kind == "gap": filt.append(f"anullsrc=r=48000:cl=mono,atrim=0:{v}[p{k}]")
-        else: filt.append(f"[0:a]atrim={v[0]:.3f}:{v[1]:.3f},asetpts=PTS-STARTPTS,aformat=sample_rates=48000:channel_layouts=mono[p{k}]")
+        else: filt.append(f"[{v[2]}:a]atrim={v[0]:.3f}:{v[1]:.3f},asetpts=PTS-STARTPTS,aformat=sample_rates=48000:channel_layouts=mono[p{k}]")
         labels.append(f"[p{k}]")
     fc = ";".join(filt) + ";" + "".join(labels) + f"concat=n={len(labels)}:v=0:a=1,loudnorm=I=-16:TP=-1.5:LRA=11[out]"
     script = pathlib.Path(out_wav).with_suffix(".filter.txt"); script.write_text(fc)
-    subprocess.run(["ffmpeg", "-hide_banner", "-loglevel", "error", "-y", "-i", str(audio), "-filter_complex_script", str(script), "-map", "[out]", "-ar", "48000", "-ac", "1", str(out_wav)], check=True)
+    subprocess.run(["ffmpeg", "-hide_banner", "-loglevel", "error", "-y", *sum([["-i", str(x)] for x in [audio, *extra]], []), "-filter_complex_script", str(script), "-map", "[out]", "-ar", "48000", "-ac", "1", str(out_wav)], check=True)
     script.unlink()
     return starts, t + 1.2
 
@@ -156,3 +157,21 @@ def render(items, folder, size, wav, out_mp4, f):
                     "-vf", f"scale={size},fps=24,format=yuv420p", "-c:v", "libx264", "-crf", "24", "-preset", "veryfast", "-c:a", "aac", "-b:a", "160k", "-shortest", str(out_mp4)], check=True)
     lst.unlink()
     return rows
+
+
+def replacement(audio, lines_nos, src):
+    """差し替え用の録音を、長い間（1.5秒以上）で区切って lines_nos の順に割り当てる"""
+    sil, total = silences(audio)
+    chunks, t = [], 0.0
+    for s, e in sil:
+        if s - t > 0.05: chunks.append([t, s])
+        t = e
+    if total - t > 0.05: chunks.append([t, total])
+    groups, cur = [], [chunks[0]]
+    for c in chunks[1:]:
+        if c[0] - cur[-1][1] >= 1.5: groups.append(cur); cur = [c]
+        else: cur.append(c)
+    groups.append(cur)
+    if len(groups) != len(lines_nos):
+        raise SystemExit(f"差し替え録音の区切りが {len(groups)} 個で、指定の行数 {len(lines_nos)} と合いません")
+    return {n: dict(chunks=g, start=g[0][0], end=g[-1][1], src=src) for n, g in zip(lines_nos, groups)}

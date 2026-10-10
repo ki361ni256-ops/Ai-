@@ -5,15 +5,23 @@
 import sys, pathlib
 HERE = pathlib.Path(__file__).parent
 sys.path.insert(0, str(HERE.parents[2] / "素材" / "tools"))
-from narrate import script_lines, align, rebuild_audio, warp, render
+from narrate import script_lines, align, rebuild_audio, warp, render, replacement
 from make_video import seq, cuts
 
 EP = HERE.parent
+# 録り直し：{録音ファイル: [差し替える行の番号（録音の中の順）]}
+FIXES = {"L": {"修正_1.m4a": [63, 64]}, "S": {}}
+
 def run(kind, md, audio, folder, size, name):
     lines = script_lines(EP / md)
     res = align(EP / "audio" / audio, lines)
+    extra = []
+    for fn, nos in FIXES[kind].items():
+        extra.append(EP / "audio" / fn)
+        for n, rep in replacement(EP / "audio" / fn, nos, len(extra)).items():
+            res[n - 1].update(rep, speech=sum(b - a for a, b in rep["chunks"]), inner_max=0.0, fixed=fn)
     wav = EP / "audio" / f"{name}_ナレーション.wav"
-    starts, real_end = rebuild_audio(EP / "audio" / audio, res, lines, wav)
+    starts, real_end = rebuild_audio(EP / "audio" / audio, res, lines, wav, extra)
     items, t, out = [], 0.0, []
     for img, d in seq(kind):
         items.append((img, t, d)); t += d
@@ -21,7 +29,7 @@ def run(kind, md, audio, folder, size, name):
     rows = render(items, HERE / folder, size, wav, HERE / "video" / f"{name}_ナレーション入り.mp4", f)
     rep = [f"# 当てはめ結果：{name}\n", "| 番号 | 録音内の位置 | 声の長さ（秒） | 見込み（秒） | 動画内の位置 | 気になる点 | 本文 |\n|---|---|---|---|---|---|---|\n"]
     for r, s in zip(res, starts):
-        note = []
+        note = [f"録り直し（{r['fixed']}）"] if r.get("fixed") else []
         if r["inner_max"] > 1.2: note.append(f"行の途中に{r['inner_max']:.1f}秒の間（言い直し？）")
         if r["speech"] > r["expected"] * 1.5: note.append("見込みより長い")
         if r["speech"] < r["expected"] * 0.6: note.append("見込みより短い")
@@ -33,4 +41,4 @@ def run(kind, md, audio, folder, size, name):
 
 if __name__ == "__main__":
     run("L", "03_台本_長尺.md", "長尺_収録.m4a", "long", "1920:1080", "きさらぎ駅_長尺")
-    run("S", "03_台本_ショート.md", "ショート_収録.m4a", "short", "1080:1920", "きさらぎ駅_ショート")
+    if len(sys.argv) < 2 or sys.argv[1] != "L": run("S", "03_台本_ショート.md", "ショート_収録.m4a", "short", "1080:1920", "きさらぎ駅_ショート")
