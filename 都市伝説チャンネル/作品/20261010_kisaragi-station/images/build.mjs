@@ -147,18 +147,18 @@ function Lshape({ stage }) {
   if (stage >= 2) h += lab(X0, 410, `①〜⑥ 途中の時刻 ${tag('unknown', { size: 26 })}`);
   if (stage >= 3) h += lab(X0, 560, `最後の書き込み ${tag('check', { size: 26 })}　実話か創作か ${tag('unknown', { size: 26 })}`);
   const yrs = [[2014, 'unknown'], [2018, 'check'], [2020, 'check'], [2021, 'check'], [2022, 'check'], [2025, 'check']];
-  if (stage >= 4) yrs.forEach(([yr, k], i) => { if (stage < 5 && yr !== 2014) return; h += pt(Xy(yr), Y + 3) + abs(`left:${Xy(yr) - 50}px;top:${Y + 30}px;width:100px;text-align:center`, seg7(String(yr), { h: 28, off: 'transparent' })) + abs(`left:${Xy(yr) - 60}px;top:${Y + (i % 2 ? 120 : 80)}px`, tag(k, { size: 24 })); });
+  if (stage >= 4) yrs.forEach(([yr, k], i) => { if (stage < 5 && yr !== 2014) return; const row = i % 2, ty = Y + 34 + row * 92; h += pt(Xy(yr), Y + 3) + abs(`left:${Xy(yr) - 1}px;top:${Y + 18}px;width:2px;height:${ty - Y - 18}px;background:rgba(242,242,242,.35)`, '') + abs(`left:${Xy(yr) - 50}px;top:${ty}px;width:100px;text-align:center`, seg7(String(yr), { h: 26, off: 'transparent' })) + abs(`left:${Xy(yr) - 50}px;top:${ty + 34}px`, tag(k, { size: 20 })); });
   if (stage >= 6) h += abs(`left:1150px;top:430px;display:flex;flex-direction:column;align-items:center;gap:8px;font-size:28px;font-weight:900;color:${C.gray}`, `${tag('unknown', { size: 28 })}<span>さぎの宮の出どころ</span>`);
-  h += abs(`left:0;right:0;bottom:40px;display:flex;justify-content:center;gap:30px;font-size:24px`, `${tag('ok', { size: 22 })}原文確認済 ${tag('check', { size: 22 })}原文確認待ち ${tag('unknown', { size: 22 })}分からない`);
+  h += abs(`right:60px;top:40px;display:flex;justify-content:flex-end;gap:20px;font-size:22px;align-items:center`, `${tag('ok', { size: 22 })}原文確認済 ${tag('check', { size: 22 })}原文確認待ち ${tag('unknown', { size: 22 })}分からない`);
   return h;
 }
 L('L75', frame({ bg: C.black, body: Lshape({ stage: 0 }) + telop('3:44で止まった記録と、その後の年', 'plain', { bottom: 300 }) }));
-L('L76', frame({ bg: C.black, body: Lshape({ stage: 1 }) + telop('23:14 最初の書き込み／23:23 電車の様子（報道による・対応は要確認）', 'fact', { bottom: 120, size: 42 }) }));
-L('L77', frame({ bg: C.black, body: Lshape({ stage: 2 }) + telop('途中の時刻：不明', 'unknown', { bottom: 120 }) }));
-L('L78', frame({ bg: C.black, body: Lshape({ stage: 3 }) + telop('3:44 最後の書き込み（報道による）／実話か創作か：不明', 'fact', { bottom: 120, size: 44 }) }));
-L('L79', frame({ bg: C.black, body: Lshape({ stage: 4 }) + telop('2014 かたす駅：出どころはまとめサイトのみ', 'unknown', { bottom: 120, size: 44 }) }));
-L('L80', frame({ bg: C.black, body: Lshape({ stage: 5 }) + telop('2018／2020／2021／2022／2025（報道・公的資料による）', 'fact', { bottom: 120, size: 44 }) }));
-L('L81', frame({ bg: C.black, body: Lshape({ stage: 6 }) + telop('「さぎの宮」の出どころ：不明', 'unknown', { bottom: 120 }) }));
+L('L76', frame({ bg: C.black, body: Lshape({ stage: 1 }) + telop('23:14 最初の書き込み／23:23 電車の様子（報道による・対応は要確認）', 'fact', { bottom: 50, size: 42 }) }));
+L('L77', frame({ bg: C.black, body: Lshape({ stage: 2 }) + telop('途中の時刻：不明', 'unknown', { bottom: 50 }) }));
+L('L78', frame({ bg: C.black, body: Lshape({ stage: 3 }) + telop('3:44 最後の書き込み（報道による）／実話か創作か：不明', 'fact', { bottom: 50, size: 44 }) }));
+L('L79', frame({ bg: C.black, body: Lshape({ stage: 4 }) + telop('2014 かたす駅：出どころはまとめサイトのみ', 'unknown', { bottom: 50, size: 44 }) }));
+L('L80', frame({ bg: C.black, body: Lshape({ stage: 5 }) + telop('2018／2020／2021／2022／2025（報道・公的資料による）', 'fact', { bottom: 50, size: 44 }) }));
+L('L81', frame({ bg: C.black, body: Lshape({ stage: 6 }) + telop('「さぎの宮」の出どころ：不明', 'unknown', { bottom: 50 }) }));
 L('L82', frame({ bg: C.black, body: Lshape({ stage: 6 }) }));
 // ---------- 結び ----------
 L('L83', frame({ bg: C.black, body: abs('left:360px;top:150px;width:6px;height:530px;background:#fff', '') + abs('left:360px;top:680px;width:1440px;height:6px;background:#fff', '') + cnt({ time: '03:44', stopped: true, year: 2025 }) + telop('23:14 → 3:44 ／ 2004 → 2025', 'plain', { bottom: 160 }) }));
