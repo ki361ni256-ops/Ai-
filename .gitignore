@@ -2,3 +2,6 @@ __pycache__/
 .DS_Store
 都市伝説チャンネル/素材/fonts/*.ttf
 都市伝説チャンネル/作品/*/images/video/*.txt
+都市伝説チャンネル/作品/*/audio/*.wav
+都市伝説チャンネル/作品/*/audio/*.filter.txt
+都市伝説チャンネル/作品/*/images/video/*ナレーション入り.txt

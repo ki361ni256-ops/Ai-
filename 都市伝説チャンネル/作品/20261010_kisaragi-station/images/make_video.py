@@ -56,5 +56,6 @@ def build(kind, folder, size, name):
     total = sum(d for _, d in items)
     print(f"{mp4.name}: {len(items)} カット / {int(total // 60)}分{int(total % 60):02d}秒")
 
-build("L", "long", "1920:1080", "きさらぎ駅_長尺_下書き")
-build("S", "short", "1080:1920", "きさらぎ駅_ショート_下書き")
+if __name__ == "__main__":
+    build("L", "long", "1920:1080", "きさらぎ駅_長尺_下書き")
+    build("S", "short", "1080:1920", "きさらぎ駅_ショート_下書き")
