@@ -18,15 +18,17 @@ BGM = {
           ("D", T("6:50"), T("9:44")), ("E", T("9:44"), T("11:35")), ("F", T("11:35"), T("14:38")), ("A", T("14:38"), T("15:01"))],
     "S": [("A", T("0:00"), T("0:36")), ("D", T("0:41"), T("1:00"))],
 }
+# 効果音は「どのカットの、頭から何秒後か」で指定する（カットの表示時間が録音に合わせて伸び縮みしても、画と音がずれない）
+# (音, カット, カットの頭からの秒〈台本上〉, 回数, 間隔〈実秒〉)
 SFX = {
-    "L": [("train", T("0:00"), 1, 0), ("pop", T("0:04"), 1, 0), ("click", T("0:09"), 9, .1), ("train", T("0:38"), 1, 0), ("pop", T("1:07"), 1, 0),
-          ("rewind", T("1:33"), 1, 0), ("click", T("2:05"), 9, .1), ("tag", T("2:38"), 2, .4), ("paper", T("2:59"), 3, .7), ("drum", T("3:38"), 1, 0),
-          ("wind", T("3:45"), 1, 0), ("car", T("4:12"), 1, 0), ("clockstop", T("4:55"), 1, 0), ("clockstop", T("6:43"), 1, 0), ("flip", T("6:50"), 1, 0),
-          *[("pin", T(x), 1, 0) for x in ["7:00", "7:12", "7:34", "8:04", "8:16", "8:38", "8:48", "9:08"]],
-          ("flip", T("11:30"), 1, 0), ("tick", T("11:52"), 16, 1.0), ("pop", T("12:09"), 1, 0), ("rewind", T("13:20"), 1, 0),
-          *[("tag", T(x), 1, 0) for x in ["13:33", "13:40", "13:47", "13:59", "14:06", "14:09", "14:12", "14:16"]], ("clockstop", T("13:46"), 1, 0),
-          ("train", T("15:01"), 1, 0)],
-    "S": [("click", T("0:00"), 3, .8), ("click", T("0:13"), 9, .1), ("drum", T("0:23"), 1, 0), ("clockstop", T("0:30"), 1, 0), ("pin", T("0:41"), 4, 2.5)],
+    "L": [("train", "L01", 0, 1, 0), ("pop", "L02", .2, 1, 0), ("click", "L03", .3, 9, .1), ("train", "L08", 0, 1, 0), ("pop", "L11", .4, 1, 0),
+          ("rewind", "L13", 0, 1, 0), ("click", "L17", .5, 9, .1), ("tag", "L20", .3, 2, .4), ("paper", "L22", 0, 3, .7), ("drum", "L27", 0, 1, 0),
+          ("wind", "L28", 0, 1, 0), ("car", "L31", 0, 1, 0), ("clockstop", "L35", .2, 1, 0), ("clockstop", "L47", .3, 1, 0), ("flip", "L47", 7, 1, 0),
+          ("pin", "L48", 1, 1, 0), *[("pin", c, .3, 1, 0) for c in ["L49", "L50", "L52", "L53", "L54", "L55", "L56"]],
+          ("flip", "L67", .3, 1, 0), ("tick", "L69", .3, 16, 1.0), ("pop", "L70", .4, 1, 0), ("rewind", "L75", .3, 1, 0),
+          ("tag", "L76", 7, 2, .3), ("tag", "L77", .4, 1, 0), ("clockstop", "L78", .2, 1, 0), ("tag", "L78", .8, 2, .4), ("tag", "L79", 3, 1, 0),
+          ("tag", "L80", .3, 5, .9), ("tag", "L81", .4, 1, 0), ("train", "L86", .5, 1, 0)],
+    "S": [("click", "S01", 0, 3, .8), ("click", "S04", .3, 9, .1), ("drum", "S05b", 0, 1, 0), ("clockstop", "S06", .3, 1, 0), ("pin", "S08", .3, 4, 2.0)],
 }
 
 # 録り直し：{録音ファイル: [差し替える行の番号（録音の中の順）]}
@@ -47,9 +49,14 @@ def run(kind, md, audio, folder, size, name):
     for img, d in seq(kind):
         items.append((img, t, d)); t += d
     f = warp(lines, starts, t, real_end)
+    first = {}
+    for img, st, d in items: first.setdefault(img, st)
+    hits = [(snd, first[c] + off, n, step) for snd, c, off, n, step in SFX[kind] if c in first]
+    missing = [c for _, c, *_ in SFX[kind] if c not in first]
+    if missing: print("効果音のカットが見つからない:", missing)
     final = EP / "audio" / f"{name}_完成音声.wav"
-    if TRACK: mix_track(wav, final, TRACK, SFX[kind], f)
-    else: mix(wav, final, BGM[kind], SFX[kind], f)
+    if TRACK: mix_track(wav, final, TRACK, hits, f)
+    else: mix(wav, final, BGM[kind], hits, f)
     rows = render(items, HERE / folder, size, final, HERE / "video" / f"{name}_完成版.mp4", f)
     rep = [f"# 当てはめ結果：{name}\n", "| 番号 | 録音内の位置 | 声の長さ（秒） | 見込み（秒） | 動画内の位置 | 気になる点 | 本文 |\n|---|---|---|---|---|---|---|\n"]
     for r, s in zip(res, starts):
