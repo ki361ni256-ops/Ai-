@@ -13,7 +13,7 @@ GAP = 0.5          # 行と行のあいだの間（秒）
 CHAPTER_GAP = 1.0  # 章の変わり目の間（秒）
 
 def sec(t):
-    m, s = t.split(":"); return int(m) * 60 + int(s)
+    m, s = re.match(r"(\d+):(\d\d)", t.strip()).groups(); return int(m) * 60 + int(s)   # 「6:05〜6:25」のような範囲は頭の時刻
 
 def script_lines(md):
     """03_台本_*.md のナレーション行を [(台本上の秒, 本文, 章の頭か)] で返す（収録台本と同じ順番）"""
