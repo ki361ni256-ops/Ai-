@@ -70,7 +70,7 @@ def build(ep, kind, md, audio, fixes, track, name, bg_for, size=(1920, 1080), fi
         t = starts[0]
     for i, (st, x, new) in enumerate(lines):
         end = starts[i + 1] if i + 1 < len(lines) else real_end
-        chap = clean_title(secs[i]); bg = bg_for(secs[i])
+        chap = "" if kind == "S" else clean_title(secs[i]); bg = bg_for(secs[i])   # ショートには章名を出さない（2026-10-11 本人指摘の再発防止）
         if starts[i] > t + 0.05:  # 前の行との隙間（無音）は直前の画面を伸ばす
             p, d = seq[-1] if seq else (None, 0)
             if seq: seq[-1] = (p, d + starts[i] - t)
