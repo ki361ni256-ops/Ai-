@@ -27,6 +27,7 @@ def line_sections(md):
     return out
 
 def clean_title(t):
+    if re.fullmatch(r"(台本|本編|ナレーション)", t.strip()): return ""   # 見出しが「台本」だけのときは章名を出さない
     t = re.sub(r"（\d+:\d\d〜\d+:\d\d）", "", t)        # 時間の表記を外す
     t = re.sub(r"^\d+:\d\d\s*", "", t)
     return t.strip()
