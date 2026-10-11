@@ -150,7 +150,7 @@ def loop_track(x, length, xfade=3.0):
         pos += len(x) - n
     return out
 
-def duck_gain(nar, speak_db=-13.0, attack=0.08, release=0.6):
+def duck_gain(nar, speak_db=-15.0, attack=0.08, release=0.6):
     """ナレーションが鳴っている間だけ BGM を speak_db 下げるゲイン（なめらかに上下）"""
     hop = int(0.02 * SR); n = len(nar) // hop + 1
     env = np.array([np.sqrt(np.mean(nar[i*hop:(i+1)*hop] ** 2) + 1e-12) for i in range(n)])
@@ -167,9 +167,10 @@ def duck_gain(nar, speak_db=-13.0, attack=0.08, release=0.6):
         g[i] = cur
     return np.repeat(g, hop)[:len(nar)]
 
-def mix_track(narration_wav, out_wav, track, sfx_hits, f, level_db=-24.0, fade_in=2.0, fade_out=4.0):
+def mix_track(narration_wav, out_wav, track, sfx_hits, f, level_db=-24.0, fade_in=2.0, fade_out=4.0, pad_sec=0.0):
     """1曲を通しで流す版。曲の基準の大きさ（RMS）を level_db にそろえ、話している間は下げる"""
     nar = read_wav(narration_wav)
+    if pad_sec: nar = np.concatenate([nar, np.zeros(int(pad_sec * SR))])
     x = load_audio(track)
     x = x / (np.sqrt(np.mean(x ** 2)) + 1e-9) * db(level_db)
     bed = loop_track(x, len(nar))

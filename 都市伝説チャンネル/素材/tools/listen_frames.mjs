@@ -2,11 +2,9 @@
 import fs from 'fs';
 import { pathToFileURL } from 'url';
 import { render } from './lib.mjs';
-import { createRequire } from 'module';
-const { loadDefaultJapaneseParser } = createRequire(import.meta.url)('budoux');
-const bx = loadDefaultJapaneseParser();
-// 字幕の折り返しは文節の切れ目だけで行う（語の途中で改行しない）
-const wrapJa = (s) => bx.parse(s).map(esc).join('<wbr>');
+import { phrases } from './phrases.mjs';
+// 字幕の折り返しは文節の切れ目だけで行う（語の途中・かっこの直後の助詞の前では改行しない）
+const wrapJa = (s) => phrases(s).map(esc).join('<wbr>');
 const { w, h, items } = JSON.parse(fs.readFileSync(process.argv[2], 'utf8'));
 const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');
 const V = h > w;

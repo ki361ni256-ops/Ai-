@@ -32,16 +32,27 @@ def clean_title(t):
     t = re.sub(r"^\d+:\d\d\s*", "", t)
     return t.strip()
 
+def phrases_of(texts):
+    """BudouX で文節に分ける（phrases.mjs と同じ結合ルール）"""
+    r = subprocess.run(["node", str(HERE / "phrases.mjs")], input=json.dumps(texts, ensure_ascii=False), capture_output=True, text=True, check=True)
+    return json.loads(r.stdout)
+
 def split_sub(text, maxlen=46):
-    """字幕用に文を区切る。「。？！」で区切り、長すぎる文は真ん中に近い「、」で分ける。
-    「、」がなければ分けない（語の途中で切らない。画面側で文節の切れ目で折り返す）"""
-    parts = [p for p in re.split(r"(?<=[。？！])(?![」』）？！])", text) if p.strip()]   # かぎかっこの中の「？」では切らない
+    """字幕用に文を区切る。「。？！」（かぎかっこ内は除く）で区切り、maxlen を超える文は
+    真ん中に近い「、」で、なければ真ん中に近い文節の切れ目で分ける（語の途中では切らない）"""
+    parts = [p for p in re.split(r"(?<=[。？！])(?![」』）？！])", text) if p.strip()]
     out = []
     def cut(p):
         if len(p) <= maxlen: return [p]
-        commas = [m.end() for m in re.finditer("、", p) if 8 <= m.end() <= len(p) - 6]
-        if not commas: return [p]
-        c = min(commas, key=lambda k: abs(k - len(p) / 2))
+        commas = [m.end() for m in re.finditer("、", p) if 6 <= m.end() <= len(p) - 4]
+        if commas:
+            c = min(commas, key=lambda k: abs(k - len(p) / 2))
+        else:
+            ph = phrases_of([p])[0]; pos, bounds = 0, []
+            for x in ph[:-1]: pos += len(x); bounds.append(pos)
+            bounds = [k for k in bounds if 4 <= k <= len(p) - 3]
+            if not bounds: return [p]
+            c = min(bounds, key=lambda k: abs(k - len(p) / 2))
         return cut(p[:c]) + cut(p[c:])
     for p in parts: out += cut(p)
     return out
@@ -60,7 +71,7 @@ def build(ep, kind, md, audio, fixes, track, name, bg_for, size=(1920, 1080), fi
     wav = ep / "audio" / f"{name}_ナレーション.wav"
     starts, real_end = rebuild_audio(ep / "audio" / audio, res, lines, wav, extra)
     final = ep / "audio" / f"{name}_完成音声.wav"
-    mix_track(wav, final, track, [], lambda s: s)
+    mix_track(wav, final, track, [], lambda s: s, pad_sec=tail)   # 余韻のあいだも曲を流し、最後にフェードアウト
     # 画面の並び
     outdir = ep / "listen" / name; outdir.mkdir(parents=True, exist_ok=True)
     for old in outdir.glob("*.png"): old.unlink()
@@ -80,7 +91,7 @@ def build(ep, kind, md, audio, fixes, track, name, bg_for, size=(1920, 1080), fi
         if starts[i] > t + 0.05:  # 前の行との隙間（無音）は直前の画面を伸ばす
             p, d = seq[-1] if seq else (None, 0)
             if seq: seq[-1] = (p, d + starts[i] - t)
-        subs = split_sub(x); total = sum(len(s) for s in subs)
+        subs = split_sub(x, 26 if kind == "S" else 46); total = sum(len(s) for s in subs)   # ショートは2行（約13字×2）まで
         for s in subs:
             lead = starts[0] if not seq else 0.0   # 最初の字幕は動画の頭から出す（声の頭までの短い間を含める）
             add((end - starts[i]) * len(s) / total + lead, text=s, chapter=chap, bg=bg)
@@ -97,7 +108,7 @@ def build(ep, kind, md, audio, fixes, track, name, bg_for, size=(1920, 1080), fi
     mp4 = ep / "listen" / f"{name}_聞かせる版.mp4"
     total = sum(max(d, 0.05) for _, d in seq)
     subprocess.run(["ffmpeg", "-hide_banner", "-loglevel", "error", "-y", "-f", "concat", "-safe", "0", "-i", str(lst), "-i", str(final),
-                    "-vf", f"scale={w}:{h},fps=24,format=yuv420p", "-af", "apad", "-t", f"{total:.2f}", "-c:v", "libx264", "-crf", "24", "-preset", "veryfast", "-tune", "stillimage",
+                    "-vf", f"scale={w}:{h},fps=24,format=yuv420p", "-t", f"{total:.2f}", "-c:v", "libx264", "-crf", "24", "-preset", "veryfast", "-tune", "stillimage",
                     "-c:a", "aac", "-b:a", "160k", str(mp4)], check=True)
     m, s = divmod(real_end, 60)
     print(f"{mp4.name}: {len(lines)}行・字幕{len(seq)}枚 → {int(m)}分{int(s):02d}秒")
