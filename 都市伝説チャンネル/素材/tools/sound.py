@@ -155,6 +155,8 @@ def duck_gain(nar, speak_db=-15.0, attack=0.08, release=0.6):
     hop = int(0.02 * SR); n = len(nar) // hop + 1
     env = np.array([np.sqrt(np.mean(nar[i*hop:(i+1)*hop] ** 2) + 1e-12) for i in range(n)])
     talking = env > db(-40)
+    ahead = 15   # 声の0.3秒前から下げ始める（声の出だしが曲に負けないように）
+    talking = talking | np.concatenate([talking[ahead:], np.zeros(ahead, bool)])
     g = np.ones(n); lo = db(speak_db); cur = 1.0
     a, r = np.exp(-0.02 / attack), np.exp(-0.02 / release)
     hold = 0

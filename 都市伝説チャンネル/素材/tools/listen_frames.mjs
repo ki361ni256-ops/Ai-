@@ -4,7 +4,7 @@ import { pathToFileURL } from 'url';
 import { render } from './lib.mjs';
 import { phrases } from './phrases.mjs';
 // 字幕の折り返しは文節の切れ目だけで行う（語の途中・かっこの直後の助詞の前では改行しない）
-const wrapJa = (s) => phrases(s).map(esc).join('<wbr>');
+const wrapJa = (s) => phrases(s).map((x) => `<span style="white-space:nowrap">${esc(x)}</span>`).join('<wbr>');   // 文節の中では改行させない
 const { w, h, items } = JSON.parse(fs.readFileSync(process.argv[2], 'utf8'));
 const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');
 const V = h > w;

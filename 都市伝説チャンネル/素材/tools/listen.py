@@ -37,7 +37,8 @@ def phrases_of(texts):
     r = subprocess.run(["node", str(HERE / "phrases.mjs")], input=json.dumps(texts, ensure_ascii=False), capture_output=True, text=True, check=True)
     return json.loads(r.stdout)
 
-def split_sub(text, maxlen=46):
+def split_sub(text, maxlen=46, hard=None):
+    hard = hard or maxlen   # 「、」がない文を文節で切るのは hard 字を超えるときだけ
     """字幕用に文を区切る。「。？！」（かぎかっこ内は除く）で区切り、maxlen を超える文は
     真ん中に近い「、」で、なければ真ん中に近い文節の切れ目で分ける（語の途中では切らない）"""
     parts = [p for p in re.split(r"(?<=[。？！])(?![」』）？！])", text) if p.strip()]
@@ -48,9 +49,12 @@ def split_sub(text, maxlen=46):
         if commas:
             c = min(commas, key=lambda k: abs(k - len(p) / 2))
         else:
+            if len(p) <= hard: return [p]
             ph = phrases_of([p])[0]; pos, bounds = 0, []
             for x in ph[:-1]: pos += len(x); bounds.append(pos)
-            bounds = [k for k in bounds if 4 <= k <= len(p) - 3]
+            def inside(k):   # かぎかっこの中の切れ目は使わない
+                t = p[:k]; return (t.count("「") + t.count("『")) > (t.count("」") + t.count("』"))
+            bounds = [k for k in bounds if 4 <= k <= len(p) - 3 and not inside(k)]
             if not bounds: return [p]
             c = min(bounds, key=lambda k: abs(k - len(p) / 2))
         return cut(p[:c]) + cut(p[c:])
@@ -91,7 +95,7 @@ def build(ep, kind, md, audio, fixes, track, name, bg_for, size=(1920, 1080), fi
         if starts[i] > t + 0.05:  # 前の行との隙間（無音）は直前の画面を伸ばす
             p, d = seq[-1] if seq else (None, 0)
             if seq: seq[-1] = (p, d + starts[i] - t)
-        subs = split_sub(x, 26 if kind == "S" else 46); total = sum(len(s) for s in subs)   # ショートは2行（約13字×2）まで
+        subs = split_sub(x, 26, 26) if kind == "S" else split_sub(x, 46, 66); total = sum(len(s) for s in subs)   # ショートは2行（約13字×2）まで
         for s in subs:
             lead = starts[0] if not seq else 0.0   # 最初の字幕は動画の頭から出す（声の頭までの短い間を含める）
             add((end - starts[i]) * len(s) / total + lead, text=s, chapter=chap, bg=bg)
@@ -106,7 +110,14 @@ def build(ep, kind, md, audio, fixes, track, name, bg_for, size=(1920, 1080), fi
         for p, d in seq: f.write(f"file '{p}'\nduration {max(d, 0.05):.3f}\n")
         f.write(f"file '{seq[-1][0]}'\n")
     mp4 = ep / "listen" / f"{name}_聞かせる版.mp4"
+    import wave
+    with wave.open(str(final)) as wf: audio_len = wf.getnframes() / wf.getframerate()
     total = sum(max(d, 0.05) for _, d in seq)
+    if total > audio_len:   # 映像を音声の長さにそろえる（最後に無音の画面を残さない）
+        p, d = seq[-1]; seq[-1] = (p, max(d - (total - audio_len), 0.5)); total = sum(max(d, 0.05) for _, d in seq)
+        with lst.open("w") as f:
+            for p, d in seq: f.write(f"file '{p}'\nduration {max(d, 0.05):.3f}\n")
+            f.write(f"file '{seq[-1][0]}'\n")
     subprocess.run(["ffmpeg", "-hide_banner", "-loglevel", "error", "-y", "-f", "concat", "-safe", "0", "-i", str(lst), "-i", str(final),
                     "-vf", f"scale={w}:{h},fps=24,format=yuv420p", "-t", f"{total:.2f}", "-c:v", "libx264", "-crf", "24", "-preset", "veryfast", "-tune", "stillimage",
                     "-c:a", "aac", "-b:a", "160k", str(mp4)], check=True)
