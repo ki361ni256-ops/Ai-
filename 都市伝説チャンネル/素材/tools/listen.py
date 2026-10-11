@@ -33,17 +33,21 @@ def clean_title(t):
     return t.strip()
 
 def split_sub(text, maxlen=46):
-    """字幕用に文を区切る（「。」で区切り、長すぎれば「、」でも区切る）"""
+    """字幕用に文を区切る。「。？！」で区切り、長すぎる文は真ん中に近い「、」で分ける。
+    「、」がなければ分けない（語の途中で切らない。画面側で文節の切れ目で折り返す）"""
     parts = [p for p in re.split(r"(?<=[。？！])", text) if p.strip()]
     out = []
-    for p in parts:
-        while len(p) > maxlen:
-            cut = max((m.end() for m in re.finditer("、", p[:maxlen])), default=maxlen)
-            out.append(p[:cut]); p = p[cut:]
-        if p.strip(): out.append(p)
+    def cut(p):
+        if len(p) <= maxlen: return [p]
+        commas = [m.end() for m in re.finditer("、", p) if 8 <= m.end() <= len(p) - 6]
+        if not commas: return [p]
+        c = min(commas, key=lambda k: abs(k - len(p) / 2))
+        return cut(p[:c]) + cut(p[c:])
+    for p in parts: out += cut(p)
     return out
 
-def build(ep, kind, md, audio, fixes, track, name, bg_for, size=(1920, 1080), first_title=None):
+def build(ep, kind, md, audio, fixes, track, name, bg_for, size=(1920, 1080), first_title=None, chapter_names=None, tail=2.5):
+    """chapter_names: [(台本の見出しの頭の文字, 画面に出す章名)]。公開用資料のチャプター名にそろえる"""
     ep = pathlib.Path(ep)
     lines = script_lines(ep / md); secs = line_sections(ep / md)
     res = align(ep / "audio" / audio, lines)
@@ -70,14 +74,19 @@ def build(ep, kind, md, audio, fixes, track, name, bg_for, size=(1920, 1080), fi
         t = starts[0]
     for i, (st, x, new) in enumerate(lines):
         end = starts[i + 1] if i + 1 < len(lines) else real_end
-        chap = "" if kind == "S" else clean_title(secs[i]); bg = bg_for(secs[i])   # ショートには章名を出さない（2026-10-11 本人指摘の再発防止）
+        chap = "" if kind == "S" else clean_title(secs[i]); bg = bg_for(secs[i])
+        if kind != "S" and chapter_names:
+            chap = next((lab for key, lab in chapter_names if secs[i].startswith(key) or key in secs[i]), chap)   # ショートには章名を出さない（2026-10-11 本人指摘の再発防止）
         if starts[i] > t + 0.05:  # 前の行との隙間（無音）は直前の画面を伸ばす
             p, d = seq[-1] if seq else (None, 0)
             if seq: seq[-1] = (p, d + starts[i] - t)
         subs = split_sub(x); total = sum(len(s) for s in subs)
         for s in subs:
-            add((end - starts[i]) * len(s) / total, text=s, chapter=chap, bg=bg)
+            lead = starts[0] if not seq else 0.0   # 最初の字幕は動画の頭から出す（声の頭までの短い間を含める）
+            add((end - starts[i]) * len(s) / total + lead, text=s, chapter=chap, bg=bg)
         t = end
+    if tail and seq:
+        p, d = seq[-1]; seq[-1] = (p, d + tail)   # 最後の言葉のあとに余韻
     w, h = size
     job = outdir / "jobs.json"; job.write_text(json.dumps(dict(w=w, h=h, items=items), ensure_ascii=False))
     subprocess.run(["node", str(HERE / "listen_frames.mjs"), str(job)], check=True, stdout=subprocess.DEVNULL)
@@ -86,9 +95,10 @@ def build(ep, kind, md, audio, fixes, track, name, bg_for, size=(1920, 1080), fi
         for p, d in seq: f.write(f"file '{p}'\nduration {max(d, 0.05):.3f}\n")
         f.write(f"file '{seq[-1][0]}'\n")
     mp4 = ep / "listen" / f"{name}_聞かせる版.mp4"
+    total = sum(max(d, 0.05) for _, d in seq)
     subprocess.run(["ffmpeg", "-hide_banner", "-loglevel", "error", "-y", "-f", "concat", "-safe", "0", "-i", str(lst), "-i", str(final),
-                    "-vf", f"scale={w}:{h},fps=24,format=yuv420p", "-c:v", "libx264", "-crf", "24", "-preset", "veryfast", "-tune", "stillimage",
-                    "-c:a", "aac", "-b:a", "160k", "-shortest", str(mp4)], check=True)
+                    "-vf", f"scale={w}:{h},fps=24,format=yuv420p", "-af", "apad", "-t", f"{total:.2f}", "-c:v", "libx264", "-crf", "24", "-preset", "veryfast", "-tune", "stillimage",
+                    "-c:a", "aac", "-b:a", "160k", str(mp4)], check=True)
     m, s = divmod(real_end, 60)
     print(f"{mp4.name}: {len(lines)}行・字幕{len(seq)}枚 → {int(m)}分{int(s):02d}秒")
     return mp4

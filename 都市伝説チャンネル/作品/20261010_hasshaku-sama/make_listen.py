@@ -17,6 +17,6 @@ def bg(sec):
 if __name__ == "__main__":
     which = sys.argv[1] if len(sys.argv) > 1 else "LS"
     if "L" in which:
-        build(EP, "L", "03_台本_長尺.md", "長尺_収録.m4a", FIXES["L"], TRACK, "八尺様_長尺", bg, (1920, 1080), first_title="八尺様\n7つの特徴を答え合わせ")
+        build(EP, "L", "03_台本_長尺.md", "長尺_収録.m4a", FIXES["L"], TRACK, "八尺様_長尺", bg, (1920, 1080))
     if "S" in which:
         build(EP, "S", "03_台本_ショート.md", "ショート_収録.m4a", FIXES["S"], TRACK, "八尺様_ショート", lambda s: str(EP / "images" / "bg" / "G08b_vertical_1.png"), (1080, 1920))
