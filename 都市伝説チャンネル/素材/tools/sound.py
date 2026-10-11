@@ -169,14 +169,14 @@ def duck_gain(nar, speak_db=-15.0, attack=0.08, release=0.6):
         g[i] = cur
     return np.repeat(g, hop)[:len(nar)]
 
-def mix_track(narration_wav, out_wav, track, sfx_hits, f, level_db=-24.0, fade_in=2.0, fade_out=4.0, pad_sec=0.0):
+def mix_track(narration_wav, out_wav, track, sfx_hits, f, level_db=-24.0, fade_in=2.0, fade_out=4.0, pad_sec=0.0, duck_db=-15.0):
     """1曲を通しで流す版。曲の基準の大きさ（RMS）を level_db にそろえ、話している間は下げる"""
     nar = read_wav(narration_wav)
     if pad_sec: nar = np.concatenate([nar, np.zeros(int(pad_sec * SR))])
     x = load_audio(track)
     x = x / (np.sqrt(np.mean(x ** 2)) + 1e-9) * db(level_db)
     bed = loop_track(x, len(nar))
-    bed = fade(bed, fade_in, fade_out) * duck_gain(nar)
+    bed = fade(bed, fade_in, fade_out) * duck_gain(nar, speak_db=duck_db)
     for name, at, n, step in sfx_hits:
         s = norm(sfx(name), db(SFX_LEVEL))
         for i in range(n): place(bed, s, f(at) + i * step)

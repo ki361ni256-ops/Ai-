@@ -75,7 +75,8 @@ def build(ep, kind, md, audio, fixes, track, name, bg_for, size=(1920, 1080), fi
     wav = ep / "audio" / f"{name}_ナレーション.wav"
     starts, real_end = rebuild_audio(ep / "audio" / audio, res, lines, wav, extra)
     final = ep / "audio" / f"{name}_完成音声.wav"
-    mix_track(wav, final, track, [], lambda s: s, pad_sec=tail)   # 余韻のあいだも曲を流し、最後にフェードアウト
+    duck = -18.0 if kind == "S" else -15.0   # ショートは声が詰まっていて曲の盛り上がりとぶつかりやすいので深めに下げる
+    mix_track(wav, final, track, [], lambda s: s, pad_sec=tail, duck_db=duck)   # 余韻のあいだも曲を流し、最後にフェードアウト
     # 画面の並び
     outdir = ep / "listen" / name; outdir.mkdir(parents=True, exist_ok=True)
     for old in outdir.glob("*.png"): old.unlink()

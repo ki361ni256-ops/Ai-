@@ -14,6 +14,7 @@ export function phrases(text) {
         (KANJI.test(prev.slice(-1)) && KANJI.test(c[0])) ||           // 漢字と漢字のあいだでは切らない（本｜当 など）
         (/[」』）]$/.test(prev) && /^[ぁ-ん、。]/.test(c)) ||          // 閉じかっこの直後の助詞・句読点は前につける
         /^[」』）、。？！]/.test(c) ||                                  // 閉じかっこ・句読点で行を始めない
+        (/と$/.test(prev) && /^(いう|いっ|いわ|言う|言っ|して|した|する|され)/.test(c)) ||  // 「と｜いう」「と｜して」は割らない
         (opened && (prev.length + c.length) <= 14);                    // 短いかぎかっこの中では切らない
       if (join) { out[out.length - 1] = prev + c; continue; }
     }
