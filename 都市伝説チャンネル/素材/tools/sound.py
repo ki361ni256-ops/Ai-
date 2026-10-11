@@ -150,7 +150,7 @@ def loop_track(x, length, xfade=3.0):
         pos += len(x) - n
     return out
 
-def duck_gain(nar, speak_db=-9.0, attack=0.08, release=0.6):
+def duck_gain(nar, speak_db=-13.0, attack=0.08, release=0.6):
     """ナレーションが鳴っている間だけ BGM を speak_db 下げるゲイン（なめらかに上下）"""
     hop = int(0.02 * SR); n = len(nar) // hop + 1
     env = np.array([np.sqrt(np.mean(nar[i*hop:(i+1)*hop] ** 2) + 1e-12) for i in range(n)])

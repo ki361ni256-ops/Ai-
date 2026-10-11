@@ -35,7 +35,7 @@ def clean_title(t):
 def split_sub(text, maxlen=46):
     """字幕用に文を区切る。「。？！」で区切り、長すぎる文は真ん中に近い「、」で分ける。
     「、」がなければ分けない（語の途中で切らない。画面側で文節の切れ目で折り返す）"""
-    parts = [p for p in re.split(r"(?<=[。？！])", text) if p.strip()]
+    parts = [p for p in re.split(r"(?<=[。？！])(?![」』）？！])", text) if p.strip()]   # かぎかっこの中の「？」では切らない
     out = []
     def cut(p):
         if len(p) <= maxlen: return [p]
