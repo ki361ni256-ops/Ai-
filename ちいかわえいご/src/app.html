@@ -505,7 +505,10 @@ function chunkTap(i){if(st.lock)return;const q=st.qs[st.i];if(st.ord.includes(i)
     if(q.accepts.includes(built)){st.lock=true;renderOrder();onCorrect()}
     else{onWrong();const line=document.querySelector('.ordline');if(line){line.classList.remove('shake');void line.offsetWidth;line.classList.add('shake')}
       st.lock=true;setTimeout(()=>{st.lock=false;st.ord=[];renderOrder()},900)}}}
-const SRc=window.SpeechRecognition||window.webkitSpeechRecognition;
+// 音声認識は、ブラウザで このファイルを ちょくせつ ひらいた ときだけ つかう。
+// claude.ai の ページの 中(ほかの ページに うめこまれた 状態)では マイクが ゆるされないので、ボタンを 出さない。
+const inFrame=(()=>{try{return window.self!==window.top}catch(e){return true}})();
+const SRc=inFrame?null:(window.SpeechRecognition||window.webkitSpeechRecognition);
 const normS=t=>t.toLowerCase().replace(/[^a-z' ]/g,' ').replace(/\s+/g,' ').trim();
 function sameish(a,b){a=normS(a);b=normS(b);if(!a)return false;if(a===b||a.includes(b))return true;const A=a.split(' '),B=b.split(' ');return B.filter(w=>A.includes(w)).length/B.length>=.7}
 // はなした ことばを きいて しらべる(マイクが つかえない ときは「いえた!」で すすむ)
