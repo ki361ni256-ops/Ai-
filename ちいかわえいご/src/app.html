@@ -424,7 +424,8 @@ function makeQ(mode,item,sub){
     return {mode,item,key,type:'order',join:'',chunks,accepts:[w.en],ask:'もじを じゅんばんに おしてね',html:`${w.e?`<div class="emoji">${w.e}</div>`:''}<div class="ja">${esc(w.ja)}</div>`,audio:w.en,full:`${w.e} ${w.en}`,explain:`「${w.ja}」は ${w.en.split('').join(' - ')}。`}}
   if(mode==='speak')return {mode,item,key,type:'speak',ask:'きいたら まねして いってみよう!',html:`<div class="emoji">${w.e}</div><div class="word">${esc(w.en)}</div><div class="sub">${esc(w.ja)}</div>`,audio:w.en,full:`${w.e} ${w.en}`,explain:''};
 }
-const JA_OF=Object.assign({},XJA);Object.values(DIALOGS).forEach(D=>{JA_OF[D.a]=D.aja});
+// まちがい選択肢の いみは XJA(場面に よらない 訳)を さきに つかう
+const JA_OF={};Object.values(DIALOGS).forEach(D=>{if(!(D.a in JA_OF))JA_OF[D.a]=D.aja});Object.assign(JA_OF,XJA);
 const itemLabel=(mode,item)=>mode==='abc'?item.toUpperCase()+' '+item:(mode==='order'||mode==='hear')?SENTS[item][0]:item;
 
 /* ---------- ふくしゅうの しくみ ----------
