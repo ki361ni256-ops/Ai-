@@ -1,7 +1,7 @@
 /* ---------- ことばの データ ----------
    WORDS: [えいご, え, にほんご, なかま, レベル]  レベル 1=ようじ〜小2 / 2=小3・4 / 3=小5・6
    小学校で ならう ことば(身近な ものの 名前・あいさつ・ようす・うごき)を 中心に えらんでいる。 */
-const CATS={color:['いろ','🎨'],number:['かず','🔢'],animal:['どうぶつ','🐾'],food:['たべもの','🍙'],body:['からだ','🖐️'],family:['かぞく','🏠'],greet:['あいさつ','👋'],school:['がっこう','🏫'],ride:['のりもの','🚃'],nature:['てんき・しぜん','🌈'],home:['いえの もの','🛋️'],verb:['うごき','🏃'],feel:['きもち','💗'],adj:['ようす','📏'],sport:['スポーツ','⚽'],day:['ようび','📅'],month:['つき','🗓️'],subj:['きょうか','📚'],town:['まち','🏘️'],job:['しごと','👩‍⚕️']};
+const CATS={color:['いろ','🎨'],number:['かず','🔢'],animal:['どうぶつ','🐾'],food:['たべもの','🍙'],body:['からだ','🖐️'],family:['かぞく','🏠'],greet:['あいさつ','👋'],school:['がっこう','🏫'],ride:['のりもの','🚃'],nature:['てんき・しぜん','🌈'],home:['いえの もの','🛋️'],verb:['うごき','🏃'],feel:['きもち','💗'],adj:['ようす','📏'],sport:['スポーツ','⚽'],day:['ようび','📅'],month:['つき','🗓️'],subj:['きょうか','📚'],town:['まち','🏘️'],job:['しごと','👩‍⚕️'],time:['じかん','⏰'],place:['ばしょ','📍'],ability:['できること','💪'],doing:['いま していること','▶️'],ask:['しつもんの ことば','❓'],daily:['まいにちの こと','🪥'],music:['がっき','🎹'],order:['ちゅうもん','🍔'],cloth:['ふく','👕'],free:['すきな こと','🎮']};
 const WORDS_RAW=[
  ['red','🔴','あか','color',1],['blue','🔵','あお','color',1],['yellow','🟡','きいろ','color',1],['green','🟢','みどり','color',1],['pink','🩷','ピンク','color',1],['orange','🟠','オレンジいろ','color',1],['purple','🟣','むらさき','color',1],['black','⚫','くろ','color',1],['white','⚪','しろ','color',1],['brown','🟤','ちゃいろ','color',1],
  ['one','1️⃣','1(いち)','number',1],['two','2️⃣','2(に)','number',1],['three','3️⃣','3(さん)','number',1],['four','4️⃣','4(よん)','number',1],['five','5️⃣','5(ご)','number',1],['six','6️⃣','6(ろく)','number',1],['seven','7️⃣','7(なな)','number',1],['eight','8️⃣','8(はち)','number',1],['nine','9️⃣','9(きゅう)','number',1],['ten','🔟','10(じゅう)','number',1],
@@ -31,7 +31,18 @@ const WORDS_RAW=[
  ['January','🎍','1がつ','month',3],['February','👹','2がつ','month',3],['March','🎎','3がつ','month',3],['April','🌸','4がつ','month',3],['May','🎏','5がつ','month',3],['June','☔','6がつ','month',3],['July','🎋','7がつ','month',3],['August','🍉','8がつ','month',3],['September','🎑','9がつ','month',3],['October','🎃','10がつ','month',3],['November','🍁','11がつ','month',3],['December','🎄','12がつ','month',3],
  ['Japanese','🗾','こくご(にほんご)','subj',3],['math','➗','さんすう','subj',3],['science','🔬','りか','subj',3],['social studies','🗺️','しゃかい','subj',3],['English','🔤','えいご','subj',3],['music','🎵','おんがく','subj',3],['P.E.','🤸','たいいく','subj',3],['arts and crafts','🎨','ずがこうさく','subj',3],
  ['park','🏞️','こうえん','town',2],['school','🏫','がっこう','town',2],['hospital','🏥','びょういん','town',3],['station','🚉','えき','town',3],['library','📚','としょかん','town',3],['zoo','🦁','どうぶつえん','town',3],['bakery','🥐','パンや','town',3],['post office','🏤','ゆうびんきょく','town',3],
- ['doctor','🧑‍⚕️','いしゃ','job',3],['chef','🧑‍🍳','コック','job',3],['police officer','👮','けいさつかん','job',3],['pilot','🧑‍✈️','パイロット','job',3],['florist','💐','はなや','job',3],['farmer','🧑‍🌾','のうか','job',3]
+ ['doctor','🧑‍⚕️','いしゃ','job',3],['chef','🧑‍🍳','コック','job',3],['police officer','👮','けいさつかん','job',3],['pilot','🧑‍✈️','パイロット','job',3],['florist','💐','はなや','job',3],['farmer','🧑‍🌾','のうか','job',3],
+ /* ---- 英検5級コース(ユニット31〜40)の ことば ---- */
+ ['morning','🌅','あさ','time',2],['afternoon','🌤️','ごご','time',2],['evening','🌇','ゆうがた','time',2],['night','🌃','よる','time',2],["o'clock",'🕖','〜じ(ちょうど)','time',2],['breakfast','🍳','あさごはん','time',2],['lunch','🍱','ひるごはん','time',2],['dinner','🍽️','ばんごはん','time',2],
+ ['in','📥','〜の なかに','place',2],['on','🔝','〜の うえに','place',2],['under','⬇️','〜の したに','place',2],['by','↔️','〜の そばに','place',3],['box','📦','はこ','place',2],['table','🍽️','テーブル','place',2],['chair','🪑','いす','place',2],
+ ['ride a bike','🚴','じてんしゃに のる','ability',2],['play the piano','🎹','ピアノを ひく','ability',2],['fly','🕊️','とぶ(そらを)','ability',2],['skate','⛸️','スケートを する','ability',2],['ski','⛷️','スキーを する','ability',2],['climb','🧗','のぼる','ability',3],
+ ['reading','📖','よんで いる','doing',2],['eating','😋','たべて いる','doing',2],['sleeping','💤','ねて いる','doing',2],['running','🏃‍♀️','はしって いる','doing',2],['singing','🎤','うたって いる','doing',2],['drawing','🖍️','えを かいて いる','doing',2],
+ ['what','❔','なに','ask',2],['who','🧑','だれ','ask',2],['where','📍','どこ','ask',2],['when','🗓️','いつ','ask',2],['how','🤔','どう・どうやって','ask',2],['how many','🔢','いくつ','ask',2],
+ ['get up','⏰','おきる','daily',2],['go to bed','🛌','ねる(ベッドに いく)','daily',2],['brush my teeth','🪥','はを みがく','daily',2],['have breakfast','🥣','あさごはんを たべる','daily',2],['do my homework','📝','しゅくだいを する','daily',2],['take a bath','🛁','おふろに はいる','daily',2],
+ ['piano','🎹','ピアノ','music',2],['guitar','🎸','ギター','music',2],['drum','🥁','たいこ・ドラム','music',2],['violin','🎻','バイオリン','music',2],['trumpet','🎺','トランペット','music',2],['video game','🎮','テレビゲーム','music',2],
+ ['hamburger','🍔','ハンバーガー','order',2],['French fries','🍟','フライドポテト','order',2],['hot dog','🌭','ホットドッグ','order',2],['water','💧','みず','order',1],['tea','🍵','おちゃ','order',2],['soup','🥣','スープ','order',2],
+ ['shirt','👔','シャツ','cloth',2],['skirt','👗','スカート','cloth',2],['pants','👖','ズボン','cloth',2],['sweater','🧶','セーター','cloth',2],['jacket','🧥','ジャケット','cloth',2],['socks','🧦','くつした','cloth',2],['hat','👒','ぼうし','cloth',2],
+ ['watch TV','📺','テレビを みる','free',2],['listen to music','🎧','おんがくを きく','free',2],['go shopping','🛍️','かいものに いく','free',2],['go camping','🏕️','キャンプに いく','free',2],['go fishing','🎣','つりに いく','free',2],['take pictures','📸','しゃしんを とる','free',3]
 ];
 
 /* アルファベット: [もじ, ことば, え, いみ, はじめの おと(カタカナの めやす)] */
@@ -99,7 +110,18 @@ const UNITS=[
  {t:'しごと',ic:'🧑‍⚕️',w:['doctor','chef','police officer','pilot','florist','farmer'],d:'job'},
  {t:'うごき 3',ic:'✍️',w:['write','study','clean','wash','go','come','see','buy','make','help'],d:'weekend'},
  {t:'ようす 2',ic:'💐',w:['delicious','beautiful','strong','kind','fun','difficult','easy','famous'],d:'howWas'},
- {t:'じこしょうかい',ic:'🙋',w:['friend','orange','purple','brown','nice to meet you','see you'],d:'name'}
+ {t:'じこしょうかい',ic:'🙋',w:['friend','orange','purple','brown','nice to meet you','see you'],d:'name'},
+ /* ---- 英検5級コース ---- */
+ {t:'じかん',ic:'⏰',w:['morning','afternoon','evening','night',"o'clock",'breakfast','lunch','dinner'],d:'time',g:'5級'},
+ {t:'どこに ある?',ic:'📍',w:['in','on','under','by','box','table','chair'],d:'place',g:'5級'},
+ {t:'できる? できない?',ic:'💪',w:['ride a bike','play the piano','fly','skate','ski','climb'],d:'canYou',g:'5級'},
+ {t:'いま なに してる?',ic:'▶️',w:['reading','eating','sleeping','running','singing','drawing'],d:'doing',g:'5級'},
+ {t:'しつもんの ことば',ic:'❓',w:['what','who','where','when','how','how many'],d:'whoIs',g:'5級'},
+ {t:'まいにちの こと',ic:'🪥',w:['get up','go to bed','brush my teeth','have breakfast','do my homework','take a bath'],d:'getUp',g:'5級'},
+ {t:'がっきと ゲーム',ic:'🎸',w:['piano','guitar','drum','violin','trumpet','video game'],d:'playInst',g:'5級'},
+ {t:'おみせで ちゅうもん',ic:'🍔',w:['hamburger','French fries','hot dog','water','tea','soup'],d:'order',g:'5級'},
+ {t:'ふく',ic:'👕',w:['shirt','skirt','pants','sweater','jacket','socks','hat'],d:'yours',g:'5級'},
+ {t:'やすみの ひ',ic:'🏕️',w:['watch TV','listen to music','go shopping','go camping','go fishing','take pictures'],d:'sunday',g:'5級'}
 ];
 
 /* かいわ: q=きかれる ぶん、a=こたえ、x=まちがいの こたえ(いみが あわない もの)。じぶんで こたえを いう れんしゅうにも つかう */
@@ -133,8 +155,37 @@ const DIALOGS={
  job:{q:'What do you want to be?',qja:'なにに なりたい?',a:'I want to be a doctor.',aja:'いしゃに なりたい。',x:['I like doctors.',"It's a hospital."]},
  weekend:{q:'What did you do last weekend?',qja:'このまえの しゅうまつ なにを した?',a:'I went to the park.',aja:'こうえんに いった。',x:["It's Sunday.",'I like parks.']},
  howWas:{q:'How was the curry?',qja:'カレーは どうだった?',a:'It was delicious.',aja:'おいしかった。',x:['I want to be a chef.',"It's Sunday."]},
- name:{q:"What's your name?",qja:'なまえは なに?',a:'My name is Chiikawa.',aja:'ちいかわだよ。',x:["I'm fine.",'Nice to meet you, too.']}
+ name:{q:"What's your name?",qja:'なまえは なに?',a:'My name is Chiikawa.',aja:'ちいかわだよ。',x:["I'm fine.",'Nice to meet you, too.']},
+ time:{q:'What time is it?',qja:'いま なんじ?',a:"It's seven o'clock.",aja:'7じだよ。',x:["It's Monday.",'I like dinner.']},
+ place:{q:'Where is the cat?',qja:'ねこは どこ?',a:"It's under the table.",aja:'テーブルの したに いるよ。',x:["It's a cat.",'I like tables.']},
+ canYou:{q:'Can you ride a bike?',qja:'じてんしゃに のれる?',a:"Yes, I can.",aja:'うん、のれるよ。',x:["Yes, it is.",'I like bikes.']},
+ doing:{q:'What are you doing?',qja:'なにを して いるの?',a:"I'm reading a book.",aja:'ほんを よんで いるよ。',x:['I like books.',"It's a book."]},
+ whoIs:{q:'Who is she?',qja:'かのじょは だれ?',a:'She is my sister.',aja:'わたしの いもうと(おねえさん)だよ。',x:["It's a dog.","I'm seven."]},
+ getUp:{q:'What time do you get up?',qja:'なんじに おきる?',a:'I get up at six.',aja:'6じに おきるよ。',x:['I like six.','I go to school.']},
+ playInst:{q:'Do you play the guitar?',qja:'ギターを ひく?',a:"No, I don't. I play the piano.",aja:'ううん。ピアノを ひくよ。',x:["It's a guitar.",'I like pink.']},
+ order:{q:'What would you like?',qja:'なにに しますか?',a:"I'd like a hamburger, please.",aja:'ハンバーガーを ください。',x:["I'm hungry.","It's a hamburger."]},
+ yours:{q:'Is this your hat?',qja:'これは あなたの ぼうし?',a:'Yes, it is. Thank you.',aja:'うん、そうだよ。ありがとう。',x:['I like hats.',"Yes, I can."]},
+ sunday:{q:'What do you do on Sundays?',qja:'にちようびは なにを する?',a:'I watch TV.',aja:'テレビを みるよ。',x:["It's Sunday.",'I like TV.']}
 };
 
 /* かいわの まちがい選択肢の いみ(ようじ〜小2 では ぜんぶの 選択肢に いみを だす。正解だけに いみが でないように) */
-const XJA={"It's red.":'あかだよ。',"I like cats.":'ねこが すき。',"I'm seven.":'7さいだよ。',"I like pink.":'ピンクが すき。',"It's a dog.":'いぬだよ。',"I'm fine.":'げんきだよ。',"I like apples.":'りんごが すき。','Good night.':'おやすみ。',"I'm happy.":'うれしい。',"It's a pencil.":'えんぴつだよ。',"I like milk.":'ぎゅうにゅうが すき。',"I have a pen.":'ペンを もってる。',"It's sunny.":'はれだよ。',"I like red.":'あかが すき。','Thank you.':'ありがとう。',"I can swim.":'およげるよ。',"I like rabbits.":'うさぎが すき。',"I like fish.":'さかなが すき。',"It's yellow.":'きいろだよ。',"I'm sleepy.":'ねむい。','Good morning.':'おはよう。',"It's hot.":'あついね。',"I'm a bear.":'わたしは くまだよ。',"It's a fish.":'さかなだよ。',"It's a book.":'ほんだよ。',"I'm six.":'6さいだよ。',"It's Friday.":'きんようびだよ。',"I have a bag.":'かばんを もってる。',"I like cake.":'ケーキが すき。',"I'm tired.":'つかれた。',"It's a cat.":'ねこだよ。',"I can run.":'はしれるよ。',"I like pencils.":'えんぴつが すき。',"I'm Chiikawa.":'ちいかわだよ。',"I like May.":'5がつが すき。',"It's a present.":'プレゼントだよ。',"I like August.":'8がつが すき。',"It's Tuesday.":'かようびだよ。',"I want a pen.":'ペンが ほしい。',"I like trains.":'でんしゃが すき。',"I like doctors.":'おいしゃさんが すき。',"It's a hospital.":'びょういんだよ。',"It's Sunday.":'にちようびだよ。',"I like parks.":'こうえんが すき。',"I want to be a chef.":'コックに なりたい。',"Nice to meet you, too.":'こちらこそ、よろしくね。'};
+const XJA={"It's red.":'あかだよ。',"I like cats.":'ねこが すき。',"I'm seven.":'7さいだよ。',"I like pink.":'ピンクが すき。',"It's a dog.":'いぬだよ。',"I'm fine.":'げんきだよ。',"I like apples.":'りんごが すき。','Good night.':'おやすみ。',"I'm happy.":'うれしい。',"It's a pencil.":'えんぴつだよ。',"I like milk.":'ぎゅうにゅうが すき。',"I have a pen.":'ペンを もってる。',"It's sunny.":'はれだよ。',"I like red.":'あかが すき。','Thank you.':'ありがとう。',"I can swim.":'およげるよ。',"I like rabbits.":'うさぎが すき。',"I like fish.":'さかなが すき。',"It's yellow.":'きいろだよ。',"I'm sleepy.":'ねむい。','Good morning.':'おはよう。',"It's hot.":'あついね。',"I'm a bear.":'わたしは くまだよ。',"It's a fish.":'さかなだよ。',"It's a book.":'ほんだよ。',"I'm six.":'6さいだよ。',"It's Friday.":'きんようびだよ。',"I have a bag.":'かばんを もってる。',"I like cake.":'ケーキが すき。',"I'm tired.":'つかれた。',"It's a cat.":'ねこだよ。',"I can run.":'はしれるよ。',"I like pencils.":'えんぴつが すき。',"I'm Chiikawa.":'ちいかわだよ。',"I like May.":'5がつが すき。',"It's a present.":'プレゼントだよ。',"I like August.":'8がつが すき。',"It's Tuesday.":'かようびだよ。',"I want a pen.":'ペンが ほしい。',"I like trains.":'でんしゃが すき。',"I like doctors.":'おいしゃさんが すき。',"It's a hospital.":'びょういんだよ。',"It's Sunday.":'にちようびだよ。',"I like parks.":'こうえんが すき。',"I want to be a chef.":'コックに なりたい。',"Nice to meet you, too.":'こちらこそ、よろしくね。',"It's Monday.":'げつようびだよ。','I like dinner.':'ばんごはんが すき。','I like tables.':'テーブルが すき。',"Yes, it is.":'うん、そうだよ。','I like bikes.':'じてんしゃが すき。','I like books.':'ほんが すき。',"It's a guitar.":'ギターだよ。',"It's a hamburger.":'ハンバーガーだよ。','I like hats.':'ぼうしが すき。','I like six.':'6が すき。','I go to school.':'がっこうに いくよ。','I like TV.':'テレビが すき。'};
+
+/* ---------- シール(まいにちの シールくじ・ごほうび) ---------- [え, なまえ, レア度 N/R/SR] */
+const STICKER_LIST=[
+ ['🍙','おにぎり','N'],['🍮','プリン','N'],['🍡','だんご','N'],['🍰','ケーキ','N'],['🌸','さくら','N'],['🍀','クローバー','N'],['🎀','リボン','N'],['🧸','くま','N'],['🍓','いちご','N'],['🌈','にじ','N'],
+ ['🎈','ふうせん','N'],['🍩','ドーナツ','N'],['🐚','かい','N'],['🍄','きのこ','N'],['🌙','つき','N'],['🔔','すず','N'],['🧁','カップケーキ','N'],['🍉','すいか','N'],['⛄','ゆきだるま','N'],['🎐','ふうりん','N'],
+ ['🪁','たこ','N'],['🌻','ひまわり','N'],['🍯','はちみつ','N'],['🍒','さくらんぼ','N'],['🍑','もも','N'],['🍋','レモン','N'],['🍪','クッキー','N'],['🍬','あめ','N'],['🍭','ペロペロキャンディ','N'],['🍫','チョコ','N'],
+ ['🥞','ホットケーキ','N'],['🍦','ソフトクリーム','N'],['🍧','かきごおり','N'],['🍥','なると','N'],['🥟','ぎょうざ','N'],['🍤','えびフライ','N'],['🍞','パン','N'],['🥐','クロワッサン','N'],['🧀','チーズ','N'],['🍳','めだまやき','N'],
+ ['🌷','チューリップ','N'],['🌼','おはな','N'],['🍁','もみじ','N'],['🍂','おちば','N'],['🌵','サボテン','N'],['🌴','ヤシの き','N'],['☁️','くも','N'],['☂️','かさ','N'],['❄️','ゆきの けっしょう','N'],['🔥','ほのお','N'],
+ ['🐣','ひよこ','N'],['🐥','ことり','N'],['🐟','おさかな','N'],['🐢','かめ','N'],['🐌','かたつむり','N'],['🐞','てんとうむし','N'],['🦋','ちょうちょ','N'],['🐝','みつばち','N'],['🐸','かえる','N'],['🐙','たこさん','N'],
+ ['⭐','ほし','R'],['💖','ハート','R'],['🎁','プレゼント','R'],['🎂','バースデーケーキ','R'],['🍨','パフェ','R'],['🎠','メリーゴーランド','R'],['🎡','かんらんしゃ','R'],['🚂','きしゃ','R'],['🚀','ロケット','R'],['🛸','ユーフォー','R'],
+ ['🦄','ユニコーン','R'],['🐬','イルカ','R'],['🦦','ラッコ','R'],['🐼','パンダ','R'],['🐧','ペンギン','R'],['🦊','きつね','R'],['🐿️','りす','R'],['🦔','はりねずみ','R'],['🐳','くじら','R'],['🦩','フラミンゴ','R'],
+ ['💎','ほうせき','SR'],['👑','おうかん','SR'],['🌟','きらきら ほし','SR'],['🏆','トロフィー','SR'],['🌠','ながれぼし','SR'],['🔮','すいしょう','SR'],['🪄','まほうの つえ','SR'],['🎆','はなび','SR']
+];
+const GACHA_RATE={N:75,R:20,SR:5};
+
+/* ---------- ⭐で そろえる もの(おみせ) ---------- [id, え, なまえ, ⭐] */
+const SHOP_ACC=[['ribbon','🎀','リボン',10],['flower','🌸','おはな',10],['cap','🧢','キャップ',15],['strawberry','🍓','いちご',15],['star','⭐','ほし',20],['hat','🎩','シルクハット',25],['glasses','👓','めがね',25],['headphones','🎧','ヘッドホン',30],['grad','🎓','はかせぼう',40],['crown','👑','おうかん',60]];
+const SHOP_FRIEND=[['shisa','シーサー',30],['furuhonya','古本屋',40],['anoko','あのこ',40],['kabutomushi','カブトムシ',50],['ode','オデ',50],['goblin','ゴブリン',60],['yoroi','鎧さん',70],['kimera','キメラ',80],['dekatsuyo','でかつよ',100],['hoshi','星',120]];
+const SHOP_ROOM=[['bed','🛏️','ベッド',10],['chair','🪑','いす',10],['plant','🪴','うえきばち',10],['teddy','🧸','ぬいぐるみ',15],['clock','🕰️','とけい',15],['books','📚','ほんだな',20],['lamp','🪔','ランプ',20],['picture','🖼️','え',20],['sofa','🛋️','ソファ',30],['tv','📺','テレビ',30],['piano','🎹','ピアノ',40],['tent','⛺','テント',40],['cake','🎂','おおきな ケーキ',40],['merry','🎠','メリーゴーランド',60],['rocket','🚀','ロケット',80],['castle','🏰','おしろ',100]];
