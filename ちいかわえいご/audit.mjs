@@ -24,6 +24,9 @@ STORIES.forEach(s=>{if(!s.opts||s.a==null||!s.opts[s.a])ng(`えほん ${s.id} �
   s.lines.forEach(l=>l.split(' ').forEach(w=>{if(!glossable(w))ng(`えほん ${s.id}「${w}」の いみが でない`)}))});
 // 4. ぶん
 SENTS.forEach(([en,j,b])=>{if(!/[.?!]$/.test(en))warn(`ぶんの おわりに . ? ! が ない: ${en}`);if(b===1&&KANJI.test(j))ng(`ようじ〜小2 の ぶんに 漢字: ${j}`)});
+// 5. index.html が いまの src から つくった ものと おなじか(build.py の しわすれを ふせぐ)
+{const app=fs.readFileSync(path.join(dir,'src/app.html'),'utf8'),built=app.replace('/*@DATA@*/',()=>fs.readFileSync(path.join(dir,'src/data.js'),'utf8')).replace('/*@CHARS@*/',()=>fs.readFileSync(path.join(dir,'src/chars.js'),'utf8'));
+  if(!fs.existsSync(path.join(dir,'index.html'))||fs.readFileSync(path.join(dir,'index.html'),'utf8')!==built)ng('index.html が いまの src から つくられて いない(python3 src/build.py を じっこう)')}
 console.log(`ことば ${WORDS_RAW.length} / ユニット ${UNITS.length} / かいわ ${Object.keys(DIALOGS).length} / ぶん ${SENTS.length} / えほん ${STORIES.length}`);
 WARN.forEach(m=>console.log('注意: '+m));NG.forEach(m=>console.log('NG: '+m));
 console.log(NG.length?`判定: 差し戻し(NG ${NG.length})`:'判定: OK');process.exit(NG.length?1:0);

@@ -498,7 +498,7 @@ function home(){st={screen:'home'};stopTalk();const r=rankInfo(),m=missions(),al
   <button class="charbtn" data-a="chars"><span class="ch bob">${bud(all?'happy':'normal')}</span><span class="cb"><span class="say">${CHARS[save.buddy].name}「${said}」</span><span class="chg">🧸 おして なかまを かえる</span></span></button>
   <div class="logo"><h1><span class="p">ちいかわ</span> <span class="m">えいご</span><span class="b">ランド</span></h1>
    <div><button class="gradechip" data-a="grade">🎒 ${GN[gNow()]} ▾</button>${Object.keys(root.profiles).length>1||save.name?`<button class="namechip" data-a="who">👤 ${esc(pName(save))}</button>`:''}</div></div>
-  ${save.gacha[today()]?'':'<button class="gachabtn" data-a="gacha"><span class="ic">🎰</span><span><b>きょうの シールくじ</b><span>1日 1かい ひけるよ!</span></span></button>'}
+  ${save.gacha[today()]?'':'<button class="gachabtn" data-a="gacha"><span class="ic">🎰</span><span><b>きょうの シールくじ</b><span>1にち 1かい ひけるよ!</span></span></button>'}
   ${todayCard()}
   <button class="coursebtn" data-a="course"><span class="ic">🗺️</span><span><b>すすむコース</b><span>${save.cp>=UNITS.length*3?'ぜんぶ クリア! すきな ユニットを ふくしゅう':`ユニット ${uNow()+1}/${UNITS.length}「${UNITS[uNow()].t}」 ・ つぎは「${STEP[save.cp%3][0]}」`}</span></span></button>
   <h2 class="sec-title" id="menus">📂 ぜんぶの メニュー</h2>
@@ -594,8 +594,8 @@ function setBuddy(mood,line,anim){const b=document.getElementById('buddy'),bb=do
 function answer(btn){if(st.lock||btn.disabled)return;const q=st.qs[st.i];
   if(btn.dataset.v===q.answer){btn.classList.add('ok');document.querySelectorAll('.choice').forEach(c=>c.disabled=true);onCorrect()}
   else{btn.classList.add('ng');btn.disabled=true;onWrong();
-    // 2かい まちがえたら、こたえと もう1つだけ のこす
-    if(st.wrongs>=2){const rest=[...document.querySelectorAll('.choice:not([disabled])')].filter(c=>c.dataset.v!==q.answer);if(rest.length>1){rest.slice(1).forEach(c=>{c.disabled=true;c.classList.add('ng')});setBuddy('normal','2つに へったよ。よく きいてみよう!','jump')}}}}
+    // 1かい まちがえたら、こたえと もう1つだけ のこす(4たくなら 2たくに)
+    if(st.wrongs>=1){const rest=[...document.querySelectorAll('.choice:not([disabled])')].filter(c=>c.dataset.v!==q.answer);if(rest.length>1){rest.slice(1).forEach(c=>{c.disabled=true;c.classList.add('ng')});setBuddy('normal','2つに へったよ。よく きいてみよう!','jump')}}}}
 function record(q,ok){const s=save.stats[q.mode]||(save.stats[q.mode]={n:0,ok:0});s.n++;if(ok)s.ok++;if(ok&&WBY[q.item]&&!save.fok[q.item])save.fok[q.item]=today();save.stats['i:'+q.mode+':'+q.item]=1;
   const l=save.log[today()]||(save.log[today()]={q:0,ok:0});l.q++;if(ok)l.ok++}
 function onCorrect(){const q=st.qs[st.i];st.lock=true;sfx.ok();st.marks[st.i]=st.first?'ok':'ng';
@@ -625,7 +625,7 @@ function missionPts(key,r){const P=save.mp[today()]||(save.mp[today()]={});
   const aw=awardPts(want-have);P[key]=have+aw.add;return Object.assign(aw,{want,have:P[key],done:true})}
 function finish(){const kind=st.kind,sc=st.score,total=st.base,t=today();save.stars+=sc;let dailyFirst=false;
   if(MODE[kind])save.best[kind]=Math.max(save.best[kind]||0,Math.round(sc/total*10));
-  const r0=sc/total,mk=kind==='course'?'course':'free',aw=missionPts(mk,r0);let allNow=false;
+  const r0=sc/total,mk=kind==='course'?'course':'free',aw=missionPts(mk,(kind==='recall'||kind==='due')?1:r0);let allNow=false;
   if(kind==='course'?r0>=.6:true)allNow=missionHit([mk]);
   let cmsg='';if(kind==='course'&&st.meta){const {u,s:sx}=st.meta,me=u*3+sx;
     if(r0>=.6){if(sx===2&&!save.ucl[u])save.ucl[u]=today();if(me===save.cp){save.cp++;cmsg=sx===2?`🎉 ユニット${u+1}「${UNITS[u].t}」 クリア!`+(UNITS[u+1]?`<br>つぎは「${UNITS[u+1].t}」`:'<br>コース ぜんぶ クリア!'):`つぎの「${STEP[sx+1][0]}」が ひらいたよ`}}
@@ -633,7 +633,7 @@ function finish(){const kind=st.kind,sc=st.score,total=st.base,t=today();save.st
   const n8=Math.ceil(total*.8),n6=Math.ceil(total*.6),up=`きょう もういちど ⭐ ${total}こ ちゅう ${n8}こ いじょうで 10ポイントに ふやせるよ`;
   const note=aw.add?(kind==='course'&&aw.have<10?`こんしゅう ${weekPts()} / ${WEEK_GOAL}ポイント。${up}`:''):aw.have>0?(kind==='course'&&aw.have<10?up:'この ミッションの ポイントは もう もらったよ(⭐は もらえる)'):kind==='course'?`⭐ ${total}こ ちゅう ${n6}こ いじょうで ポイントが もらえるよ`:'';
   save.days[t]=(save.days[t]||0)+1;
-  let newSt=null;if(sc>=Math.ceil(total*.6)){const left=STICKERS.filter(s=>!save.stickers.includes(s[0]));if(left.length){newSt=pick(left);save.stickers.push(newSt[0])}}
+  let newSt=null;if(sc>=Math.ceil(total*.6)){const left=STICKERS.filter(s=>s[2]!=='SR'&&!save.stickers.includes(s[0]));if(left.length){newSt=pick(left);save.stickers.push(newSt[0]);save.stk[newSt[0]]=(save.stk[newSt[0]]||0)+1}}
   persist();sfx.fan();confetti();
   const r=sc/total,msg=r===1?'パーフェクト!!':r>=.8?'すごーい!':r>=.6?'よく できました!':'さいごまで がんばったね!';
   $app.innerHTML=topbar('home')+`<div class="result">
@@ -738,7 +738,7 @@ function word(en){const w=WBY[en];if(!w)return;st={screen:'word',w};bgmSync();co
 /* ----- こんしゅう できるように なったこと ----- */
 function growCard(){const wk=new Set(weekDays().map(d=>dkey(d))),inW=d=>d&&wk.has(d);
   const nw=Object.values(save.fok).filter(inW).length,R=Object.values(save.rc),said=R.filter(r=>inW(r.d1)).length,later=R.filter(r=>inW(r.d2)&&r.d1&&r.d2!==r.d1).length,un=Object.values(save.ucl).filter(inW).length;
-  const items=[[nw,'🆕','あたらしく おぼえた ことば'],[said,'💭','じぶんで いえた ことば・ぶん'],[later,'🔁','まえに おぼえて、きょうも いえた'],[un,'🗺️','クリアした ユニット']].filter(x=>x[0]>0);
+  const items=[[nw,'🆕','あたらしく おぼえた ことば'],[said,'💭','じぶんで いえた ことば・ぶん'],[later,'🔁','まえに おぼえて、こんしゅうも いえた'],[un,'🗺️','クリアした ユニット']].filter(x=>x[0]>0);
   return `<div class="panel"><h2>🌱 こんしゅう できるように なったこと</h2>${items.length?`<div class="grow">${items.map(x=>`<div><b>${x[1]} ${x[0]}</b><span>${x[2]}</span></div>`).join('')}</div>`:'<p class="sub">これから ふえていくよ! きょうの えいごを やってみよう</p>'}</div>`}
 
 /* ----- シールくじ ----- */
@@ -746,10 +746,10 @@ function gacha(){if(save.gacha[today()]){book();return}st={screen:'gacha'};
   $app.innerHTML=topbar('home')+`<h2 class="sec-title">🎰 きょうの シールくじ</h2>
   <div class="talk"><div class="ch bob">${bud('happy')}</div><div class="bubble">ボタンを おしてね! なにが でるかな…?</div></div>
   <div class="gachabox"><div class="capsule" id="cap">❓</div><button class="pill pink" id="gbtn" data-a="gpull">🎰 くじを ひく!</button>
-  <p class="note">ノーマル ${GACHA_RATE.N}% ・ レア ${GACHA_RATE.R}% ・ スーパーレア ${GACHA_RATE.SR}%(1日 1かい)</p></div>`;window.scrollTo(0,0);bgmSync()}
+  <p class="note">✨ レアや 🌟 スーパーレアも でるかも!(1にち 1かい)</p></div>`;window.scrollTo(0,0);bgmSync()}
 function gpull(){if(save.gacha[today()])return;const r=Math.random()*100,rar=r<GACHA_RATE.SR?'SR':r<GACHA_RATE.SR+GACHA_RATE.R?'R':'N';
   const pool=STICKERS.filter(x=>x[2]===rar),got=pick(pool),dup=save.stickers.includes(got[0]);
-  save.gacha[today()]=got[0];save.stk[got[0]]=(save.stk[got[0]]||0)+1;if(!dup)save.stickers.push(got[0]);else save.stars+=1;persist();
+  save.gacha[today()]=got[0];save.stk[got[0]]=(save.stk[got[0]]||0)+1;if(!dup)save.stickers.push(got[0]);else{save.stars+=1;if(save.stk[got[0]]<2)save.stk[got[0]]=2}persist();
   const c=document.getElementById('cap'),b=document.getElementById('gbtn');b.disabled=true;c.classList.add('roll');tone(523,0,.1,'triangle');tone(659,.15,.1,'triangle');tone(784,.3,.1,'triangle');
   setTimeout(()=>{c.classList.remove('roll');c.classList.add('open',rar.toLowerCase());c.textContent=got[0];sfx.fan();if(rar!=='N')confetti();
     b.outerHTML=`<div class="newsticker ${rar.toLowerCase()}"><span class="e">${got[0]}</span><span>${rar==='SR'?'🌟 スーパーレア!':rar==='R'?'✨ レア!':'ノーマル'}<br>「${got[1]}」${dup?`<br>もってる シール! ⭐+1(${save.stk[got[0]]}まいめ)`:'を ゲット!'}</span></div><div class="row"><button class="pill mint" data-a="book">🎀 シールちょうへ</button><button class="pill sky" data-a="home">🏠 ホームへ</button></div>`;
@@ -764,7 +764,7 @@ function shop(){st={screen:'shop'};const tabs=[['acc','🎀 きせかえ'],['fri
   <div class="cats">${tabs.map(t=>`<button class="cat" data-a="stab" data-k="${t[0]}" aria-pressed="${shopTab===t[0]}">${t[1]}</button>`).join('')}</div>
   <div class="shopgrid">${list.map(it=>{const has=o[shopTab].includes(it.id),on=shopTab==='acc'?save.acc===it.id:shopTab==='friend'?save.buddy===it.id:save.roomOn.includes(it.id);
     return `<div class="sitem ${has?'has':''} ${on?'on':''}">${it.pic}<b>${esc(it.n)}</b>${has?`<button class="sbtn" data-a="suse" data-k="${it.id}">${shopTab==='acc'?(on?'はずす':'つける'):shopTab==='friend'?(on?'いっしょ':'えらぶ'):(on?'しまう':'おく')}</button>`:`<button class="sbtn buy" data-a="sbuy" data-k="${it.id}" ${w<it.c?'disabled':''}>⭐ ${it.c}</button>`}</div>`}).join('')}</div>
-  <p class="note" style="text-align:center">ほしを つかっても ランクは さがらないよ</p>`;window.scrollTo(0,0);bgmSync()}
+  <p class="note" style="text-align:center">ほしを つかっても ランクは さがらないよ${shopTab==='room'?`<br>おへやに おける かぐは 12こまで(いま ${save.roomOn.length}こ)。いっぱいの ときは「しまう」で へらしてね`:''}</p>`;window.scrollTo(0,0);bgmSync()}
 function shopItem(id){return shopTab==='acc'?SHOP_ACC.find(x=>x[0]===id)&&{c:SHOP_ACC.find(x=>x[0]===id)[3]}:shopTab==='friend'?{c:SHOP_FRIEND.find(x=>x[0]===id)[2]}:{c:SHOP_ROOM.find(x=>x[0]===id)[3]}}
 function sbuy(id){const it=shopItem(id);if(!it||save.owned[shopTab].includes(id)||wallet()<it.c)return;save.spent=(save.spent||0)+it.c;save.owned[shopTab].push(id);
   if(shopTab==='acc')save.acc=id;if(shopTab==='room'&&save.roomOn.length<12)save.roomOn.push(id);persist();sfx.fan();confetti();shop()}
@@ -847,8 +847,15 @@ document.addEventListener('click',e=>{const b=e.target.closest('[data-a]');if(!b
    gacha(){gacha()},gpull(){gpull()},shop(){shop()},room(){room()},stab(){shopTab=k;shop()},sbuy(){sbuy(k)},suse(){suse(k)},
    poke(){const c=CHARS[k];if(c){sayJa(pick(c.ok));const el=b;el.classList.remove('jump');void el.offsetWidth;el.classList.add('jump')}},
    reveal(){const q=st.qs[st.i];st.revealed=true;document.getElementById('reveal').hidden=false;document.getElementById('rv1').hidden=true;document.getElementById('rv2').hidden=false;sayEn(q.answer)},
-   rcok(){if(st.lock)return;const q=st.qs[st.i];if(!st.first){onCorrect();return}rcMark(q,true);logSpeak();onCorrect();setBuddy('happy','じぶんで いえたね! すごい!','jump')},
-   rcng(){if(st.lock)return;const q=st.qs[st.i];if(st.first)rcMark(q,false);onWrong();onCorrect()},
+   rcok(){if(st.lock)return;const q=st.qs[st.i];if(!st.first){onCorrect();return}if(!q.retry)rcMark(q,true);logSpeak();onCorrect();setBuddy('happy','じぶんで いえたね! すごい!','jump')},
+   rcng(){if(st.lock)return;const q=st.qs[st.i];st.lock=true;
+     // しょうじきに「まだ」と おしたら ほめる。まちがいの おとは ならさない。あとで もういちど でる
+     if(st.first&&!q.retry){rcMark(q,false);addMiss(q);st.newMiss++}st.first=false;st.marks[st.i]='ng';
+     ['rv1','rv2','reveal'].forEach(id=>{const e=document.getElementById(id);if(e)e.hidden=true});
+     const tries=(q.tries||0)+1;if(tries<=2)st.qs.splice(Math.min(st.i+3,st.qs.length),0,{...q,retry:true,tries});
+     setBuddy('happy','しょうじきに おしえて くれて ありがとう! いっしょに いってみよう','jump');
+     document.getElementById('learn').innerHTML=`<div class="learn"><b>📝 いっしょに いってみよう</b><div class="full">${esc(q.answer)}</div><p>${esc(q.answerJa||'')}</p>${tries<=2?'<span class="note">この もんだいは あとで もういちど でるよ</span>':''}<div class="row"><button class="pill sky" data-a="say">🔊 きく</button><button class="pill mint" data-a="next">わかった!</button></div></div>`;
+     persist();sayEn(q.answer)},
    bkmake(){const o=document.getElementById('bkout');o.value='CEL1:'+btoa(unescape(encodeURIComponent(JSON.stringify(save))));o.hidden=false;document.getElementById('bkcopy').hidden=false;o.select()},
    async bkcopy(){const o=document.getElementById('bkout');try{await navigator.clipboard.writeText(o.value);document.getElementById('bkmsg').textContent='コピーしました'}catch(e){o.select();document.getElementById('bkmsg').textContent='えらびました。長押しで コピーしてください'}},
    bkload(){const m=document.getElementById('bkmsg');try{const v=document.getElementById('bkin').value.trim().replace(/^CEL1:/,'');const o=JSON.parse(decodeURIComponent(escape(atob(v))));if(!o||typeof o.stars!=='number')throw 0;o.id=save.id;save=mergeSave(save,Object.assign(newSave(save.id),o));persist();parent();const m2=document.getElementById('bkmsg');if(m2)m2.textContent='よみこみました(大きい ほうの きろくに あわせました)'}catch(e){m.textContent='コードが よみこめませんでした。さいごまで コピー できているか たしかめてください'}},
