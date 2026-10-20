@@ -16,7 +16,8 @@ const ja=WORDS_RAW.map(w=>w[2]);ja.forEach((x,i)=>{if(ja.indexOf(x)!==i)ng(`い�
 UNITS.forEach((u,i)=>{u.w.forEach(en=>{if(!W.has(en))ng(`ユニット${i+1} に ない ことば: ${en}`)});if(!DIALOGS[u.d])ng(`ユニット${i+1} の かいわが ない: ${u.d}`);if(u.w.length<5)warn(`ユニット${i+1} の ことばが すくない`)});
 Object.entries(DIALOGS).forEach(([k,D])=>{['q','qja','a','aja'].forEach(f=>{if(!D[f])ng(`かいわ ${k} の ${f} が ない`)});
   if(!Array.isArray(D.x)||D.x.length<2)ng(`かいわ ${k} の まちがい選択肢が たりない`);if(D.x&&D.x.includes(D.a))ng(`かいわ ${k}: こたえが まちがいにも ある`);
-  if(KANJI.test(D.qja+D.aja))ng(`かいわ ${k} の にほんごに 漢字`)});
+  if(KANJI.test(D.qja+D.aja))ng(`かいわ ${k} の にほんごに 漢字`);
+  const as=new Set(Object.values(DIALOGS).map(x=>x.a));(D.x||[]).forEach(x=>{if(!as.has(x)&&!XJA[x])ng(`かいわ ${k} の まちがい選択肢「${x}」に いみが ない(正解だけ いみが でて しまう)`)})});
 // 3. えほん
 const glossable=w=>{const k=w.toLowerCase().replace(/[^a-z'-]/g,'');if(!k)return true;return [...W.keys()].some(x=>x.toLowerCase()===k)||GLOSS[k]||GLOSS[k.replace(/'s$/,'')]||GLOSS[k.replace(/s$/,'')]};
 STORIES.forEach(s=>{if(!s.opts||s.a==null||!s.opts[s.a])ng(`えほん ${s.id} の クイズが へん`);if(KANJI.test(s.title+s.ask+s.opts.join('')))ng(`えほん ${s.id} に 漢字`);
