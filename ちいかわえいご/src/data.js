@@ -10,7 +10,7 @@ const WORDS_RAW=[
  ['elephant','🐘','ぞう','animal',2],['giraffe','🦒','きりん','animal',2],['penguin','🐧','ペンギン','animal',2],['horse','🐴','うま','animal',2],['frog','🐸','かえる','animal',2],['sea otter','🦦','ラッコ','animal',2],['koala','🐨','コアラ','animal',2],['tiger','🐯','とら','animal',2],['snake','🐍','へび','animal',3],['dolphin','🐬','イルカ','animal',3],['owl','🦉','ふくろう','animal',3],['turtle','🐢','かめ','animal',3],
  ['apple','🍎','りんご','food',1],['banana','🍌','バナナ','food',1],['strawberry','🍓','いちご','food',1],['milk','🥛','ぎゅうにゅう','food',1],['bread','🍞','パン','food',1],['egg','🥚','たまご','food',1],['cake','🍰','ケーキ','food',1],['ice cream','🍦','アイスクリーム','food',1],['juice','🧃','ジュース','food',1],['rice ball','🍙','おにぎり','food',1],
  ['pudding','🍮','プリン','food',2],['cookie','🍪','クッキー','food',2],['grapes','🍇','ぶどう','food',2],['lemon','🍋','レモン','food',2],['peach','🍑','もも','food',2],['tomato','🍅','トマト','food',2],['carrot','🥕','にんじん','food',2],['pizza','🍕','ピザ','food',2],['curry and rice','🍛','カレーライス','food',2],['noodles','🍜','めん','food',2],['sandwich','🥪','サンドイッチ','food',3],['spaghetti','🍝','スパゲッティ','food',3],['onion','🧅','たまねぎ','food',3],['potato','🥔','じゃがいも','food',3],['salad','🥗','サラダ','food',3],['steak','🥩','ステーキ','food',3],
- ['head','🙂','あたま','body',1],['hand','✋','て','body',1],['eye','👁️','め','body',1],['nose','👃','はな(かおの)','body',1],['mouth','👄','くち','body',1],['ear','👂','みみ','body',1],['foot','🦶','あし(くるぶしから下)','body',1],
+ ['head','🙂','あたま','body',1],['hand','✋','て','body',1],['eye','👁️','め','body',1],['nose','👃','はな(かおの)','body',1],['mouth','👄','くち','body',1],['ear','👂','みみ','body',1],['foot','🦶','あし(くるぶしから した)','body',1],
  ['leg','🦵','あし','body',2],['tooth','🦷','は','body',2],['hair','💇','かみのけ','body',2],['face','😀','かお','body',2],['shoulder','🤷','かた','body',3],['knee','🦵','ひざ','body',3],
  ['mother','👩','おかあさん','family',1],['father','👨','おとうさん','family',1],['baby','👶','あかちゃん','family',1],['sister','👧','しまい(あね・いもうと)','family',2],['brother','👦','きょうだい(あに・おとうと)','family',2],['grandmother','👵','おばあさん','family',2],['grandfather','👴','おじいさん','family',2],['friend','🧑‍🤝‍🧑','ともだち','family',2],
  ['hello','👋','こんにちは','greet',1],['goodbye','👋','さようなら','greet',1],['thank you','🙏','ありがとう','greet',1],['good morning','🌅','おはよう','greet',1],['good night','🌙','おやすみ','greet',1],['sorry','🙇','ごめんなさい','greet',1],['nice to meet you','🤝','はじめまして','greet',2],['see you','🙋','またね','greet',2],
@@ -65,3 +65,72 @@ const STORIES=[
 
 /* えほんの ことばを おすと でる いみ(WORDS に ない ことば) */
 const GLOSS={i:'わたし',am:'〜です',is:'〜です',are:'〜です',a:'ひとつの',the:'その',look:'みて',like:'すき',likes:'すき',yum:'おいしい',can:'できる',it:'それ',today:'きょう',and:'と',to:'〜へ',they:'かれら',eat:'たべる',says:'いう',this:'これ',he:'かれ',very:'とても',well:'じょうずに',again:'もういちど',please:'おねがい',sings:'うたう',together:'いっしょに',opens:'あける',sees:'みる',yaha:'ヤハ(うさぎの こえ)',ura:'ウラ(うさぎの こえ)',all:'ぜんぶ',was:'だった',morning:'あさ',when:'〜とき',opened:'あけた',everything:'ぜんぶ',made:'つくった',snowman:'ゆきだるま',in:'〜の なかで',came:'きた',put:'おいた',on:'〜の うえに',its:'その',after:'〜の あと',that:'それ',drank:'のんだ',has:'もっている',dream:'ゆめ',wants:'〜したい',open:'ひらく',shop:'おみせ',someday:'いつか',saves:'ためる',little:'すこし',money:'おかね',every:'まい〜',week:'しゅう',will:'〜するつもり',you:'あなた',smiles:'ほほえむ',let:'〜しよう',"let's":'〜しよう',do:'する',our:'わたしたちの',best:'いちばん・ベスト',last:'このまえの',went:'いった',with:'〜と いっしょに',his:'かれの',friends:'ともだち',swam:'およいだ',found:'みつけた',pretty:'かわいい',shell:'かいがら',evening:'ゆうがた',watched:'みた',fireworks:'はなび',so:'とても',shouted:'さけんだ',of:'〜の',chiikawa:'ちいかわ',hachiware:'ハチワレ',usagi:'うさぎ',go:'いく',jump:'ジャンプ',sing:'うたう',cold:'さむい',white:'しろい',hot:'あつい',milk:'ぎゅうにゅう',carrot:'にんじん',face:'かお',help:'たすける',thank:'ありがとう',day:'ひ',sea:'うみ',summer:'なつ',fast:'はやく',excited:'わくわくして',rice:'ごはん',balls:'たま(おにぎり)',delicious:'おいしい',happy:'うれしい',hungry:'おなかが すいた',door:'ドア',big:'おおきい',pudding:'プリン',music:'おんがく',dance:'おどる',park:'こうえん',sunny:'はれ',bird:'とり',flower:'はな',blue:'あお',yellow:'きいろ',red:'あかい',apples:'りんご',one:'1',two:'2',three:'3',window:'まど',small:'ちいさい'};
+
+/* ---------- すすむコース(ユニットの じゅんばん) ----------
+   1ユニット = ①まなぶ(ことばを きいて まねする) ②れんしゅう(クイズ) ③はなそう(かいわ) の 3ステップ。
+   英検5級で よく でる ことばと、小学校の 英語の 会話を 中心に ならべている。 */
+const UNITS=[
+ {t:'あいさつ',ic:'👋',w:['hello','goodbye','good morning','good night','thank you','sorry'],d:'greet'},
+ {t:'いろ',ic:'🎨',w:['red','blue','yellow','green','pink','white','black'],d:'color'},
+ {t:'かず 1〜5',ic:'🖐️',w:['one','two','three','four','five'],d:'age'},
+ {t:'どうぶつ',ic:'🐶',w:['dog','cat','rabbit','bear','bird','fish','panda','mouse'],d:'likeAnimal'},
+ {t:'かず 6〜10',ic:'🔟',w:['six','seven','eight','nine','ten'],d:'howMany'},
+ {t:'たべもの',ic:'🍎',w:['apple','banana','strawberry','milk','bread','egg','cake','rice ball'],d:'food'},
+ {t:'からだ',ic:'🖐️',w:['head','hand','eye','nose','mouth','ear','foot'],d:'whatThis'},
+ {t:'かぞく',ic:'🏠',w:['mother','father','baby','sister','brother','grandmother','grandfather'],d:'who'},
+ {t:'きもち',ic:'💗',w:['happy','sad','hungry','sleepy','tired','fine'],d:'howAre'},
+ {t:'ようす',ic:'📏',w:['big','small','hot','cold','cute','long','short'],d:'isIt'},
+ {t:'のりもの',ic:'🚃',w:['car','bus','train','bike','ship','airplane'],d:'whatThat'},
+ {t:'てんき',ic:'🌈',w:['sun','moon','star','rain','snow','rainbow','cloud'],d:'weather'},
+ {t:'どうぶつ 2',ic:'🐘',w:['elephant','giraffe','penguin','horse','frog','koala','tiger','lion','monkey'],d:'canAnimal'},
+ {t:'おやつ',ic:'🍮',w:['pudding','cookie','grapes','lemon','peach','ice cream','juice','tomato','carrot'],d:'want'},
+ {t:'がっこう',ic:'🏫',w:['pencil','book','bag','pen','eraser','ruler','notebook','desk','teacher'],d:'have'},
+ {t:'うごき 1',ic:'🏃',w:['run','jump','swim','eat','drink','sleep'],d:'can'},
+ {t:'うごき 2',ic:'🎤',w:['sing','dance','walk','play','read','cook'],d:'letsPlay'},
+ {t:'スポーツ',ic:'⚽',w:['soccer','baseball','tennis','basketball','swimming'],d:'sport'},
+ {t:'いえの もの',ic:'🛋️',w:['house','bed','door','window','clock','cup','umbrella','shoes'],d:'where'},
+ {t:'ようび',ic:'📅',w:['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'],d:'day'},
+ {t:'おおきな かず',ic:'💯',w:['eleven','twelve','twenty','thirty','fifty','one hundred'],d:'howMany2'},
+ {t:'きせつ',ic:'🌷',w:['spring','summer','fall','winter','sunny','cloudy','windy'],d:'season'},
+ {t:'つき 1〜6',ic:'🎎',w:['January','February','March','April','May','June'],d:'birthday'},
+ {t:'つき 7〜12',ic:'🎄',w:['July','August','September','October','November','December'],d:'birthday'},
+ {t:'きょうか',ic:'📚',w:['Japanese','math','science','social studies','English','music','P.E.','arts and crafts'],d:'subject'},
+ {t:'まち',ic:'🏘️',w:['park','school','hospital','station','library','zoo','bakery','post office'],d:'whereTown'},
+ {t:'しごと',ic:'🧑‍⚕️',w:['doctor','chef','police officer','pilot','florist','farmer'],d:'job'},
+ {t:'うごき 3',ic:'✍️',w:['write','study','clean','wash','go','come','see','buy','make','help'],d:'weekend'},
+ {t:'ようす 2',ic:'💐',w:['delicious','beautiful','strong','kind','fun','difficult','easy','famous'],d:'howWas'},
+ {t:'じこしょうかい',ic:'🙋',w:['friend','orange','purple','brown','nice to meet you','see you'],d:'name'}
+];
+
+/* かいわ: q=きかれる ぶん、a=こたえ、x=まちがいの こたえ(いみが あわない もの)。じぶんで こたえを いう れんしゅうにも つかう */
+const DIALOGS={
+ greet:{q:'Hello! How are you?',qja:'こんにちは! げんき?',a:"I'm fine, thank you.",aja:'げんきだよ、ありがとう。',x:["It's red.","I like cats."]},
+ color:{q:'What color do you like?',qja:'なにいろが すき?',a:'I like blue.',aja:'あおが すき。',x:["I'm seven.",'Yes, I do.']},
+ age:{q:'How old are you?',qja:'なんさい?',a:"I'm seven.",aja:'7さいだよ。',x:['I like pink.',"It's a dog."]},
+ likeAnimal:{q:'Do you like dogs?',qja:'いぬは すき?',a:'Yes, I do.',aja:'うん、すき。',x:["I'm fine.","It's Monday."]},
+ howMany:{q:'How many apples?',qja:'りんごは いくつ?',a:'Six apples.',aja:'6こ。',x:['I like apples.',"It's red."]},
+ food:{q:'What food do you like?',qja:'すきな たべものは なに?',a:'I like strawberries.',aja:'いちごが すき。',x:["I'm hungry.",'Good night.']},
+ whatThis:{q:"What's this?",qja:'これは なに?',a:"It's a nose.",aja:'はなだよ。',x:['Yes, I can.',"I'm happy."]},
+ who:{q:'Who is this?',qja:'これは だれ?',a:'This is my mother.',aja:'わたしの おかあさん。',x:["It's a cat.",'I like milk.']},
+ howAre:{q:'How are you today?',qja:'きょうの ちょうしは どう?',a:"I'm hungry.",aja:'おなかが すいた。',x:['I have a pen.',"It's sunny."]},
+ isIt:{q:'Is it big?',qja:'それは おおきい?',a:'Yes, it is.',aja:'うん、おおきい。',x:["I'm fine.",'I like red.']},
+ whatThat:{q:"What's that?",qja:'あれは なに?',a:"It's a train.",aja:'でんしゃだよ。',x:['Thank you.','I can swim.']},
+ weather:{q:"How's the weather?",qja:'てんきは どう?',a:"It's rainy.",aja:'あめだよ。',x:['I like rabbits.',"I'm seven."]},
+ canAnimal:{q:'Can a penguin fly?',qja:'ペンギンは とべる?',a:"No, it can't.",aja:'ううん、とべない。',x:['Yes, I do.',"It's yellow."]},
+ want:{q:'What do you want?',qja:'なにが ほしい?',a:'I want pudding.',aja:'プリンが ほしい。',x:["I'm sleepy.",'Good morning.']},
+ have:{q:'Do you have a pencil?',qja:'えんぴつ もってる?',a:'Yes, I do. Here you are.',aja:'うん。はい、どうぞ。',x:["It's hot.","I'm a bear."]},
+ can:{q:'Can you swim?',qja:'およげる?',a:'Yes, I can.',aja:'うん、およげる。',x:["It's a fish.",'I like blue.']},
+ letsPlay:{q:"Let's sing together!",qja:'いっしょに うたおう!',a:"OK! Let's sing!",aja:'いいよ! うたおう!',x:["It's a book.","I'm six."]},
+ sport:{q:'What sport do you like?',qja:'すきな スポーツは?',a:'I like soccer.',aja:'サッカーが すき。',x:["It's Friday.",'I have a bag.']},
+ where:{q:'Where is my cup?',qja:'わたしの カップは どこ?',a:"It's on the desk.",aja:'つくえの うえに あるよ。',x:['I like cake.',"I'm tired."]},
+ day:{q:'What day is it today?',qja:'きょうは なんようび?',a:"It's Monday.",aja:'げつようびだよ。',x:["It's a cat.",'I can run.']},
+ howMany2:{q:'How many pencils do you have?',qja:'えんぴつを なんぼん もってる?',a:'I have twelve pencils.',aja:'12ほん もってる。',x:['I like pencils.',"It's sunny."]},
+ season:{q:'What season do you like?',qja:'すきな きせつは?',a:'I like summer.',aja:'なつが すき。',x:["It's ten.","I'm Chiikawa."]},
+ birthday:{q:'When is your birthday?',qja:'たんじょうびは いつ?',a:'My birthday is in May.',aja:'5がつだよ。',x:['I like May.',"It's a present."]},
+ subject:{q:'What subject do you like?',qja:'すきな きょうかは?',a:'I like music.',aja:'おんがくが すき。',x:["It's Tuesday.",'I want a pen.']},
+ whereTown:{q:'Where is the station?',qja:'えきは どこ?',a:'Go straight. It is on your left.',aja:'まっすぐ いって。ひだりに あるよ。',x:['I like trains.',"I'm hungry."]},
+ job:{q:'What do you want to be?',qja:'なにに なりたい?',a:'I want to be a doctor.',aja:'いしゃに なりたい。',x:['I like doctors.',"It's a hospital."]},
+ weekend:{q:'What did you do last weekend?',qja:'このまえの しゅうまつ なにを した?',a:'I went to the park.',aja:'こうえんに いった。',x:['I go to school.','I like parks.']},
+ howWas:{q:'How was the curry?',qja:'カレーは どうだった?',a:'It was delicious.',aja:'おいしかった。',x:['I want to be a chef.',"It's Sunday."]},
+ name:{q:"What's your name?",qja:'なまえは なに?',a:'My name is Chiikawa.',aja:'ちいかわだよ。',x:["I'm fine.",'Nice to meet you, too.']}
+};
