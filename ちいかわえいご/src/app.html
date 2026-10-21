@@ -251,6 +251,24 @@ if(!root||!root.profiles){const id=pid();root={active:id,profiles:{[id]:newSave(
 for(const k in root.profiles)root.profiles[k]=Object.assign(newSave(k),root.profiles[k]);
 if(!root.profiles[root.active])root.active=Object.keys(root.profiles)[0];
 let save=root.profiles[root.active];
+/* ---------- おなじ こが いくつにも わかれた きろくを 1つに まとめる ----------
+   まえの 版では、端末に きろくが ない とき(ブラウザが けした・べつの アプリで ひらいた など)に
+   あたらしい からっぽの きろくを つくって しまい、アカウントの きろくが つかわれなかった。
+   なまえが おなじ(なまえ なし どうしも)きろくは おなじ こと みなして まとめる。 */
+const pristine=p=>!p.name&&!(p.stars>0)&&!(p.cp>0)&&!Object.keys(p.log||{}).length&&!Object.keys(p.pts||{}).length;
+const daysOf=p=>new Set(Object.keys(p.log||{}));
+function combine(list){list=list.slice().sort((a,b)=>(a.upd||0)-(b.upd||0));let acc=list[0];
+  for(const q of list.slice(1)){const A=daysOf(acc),apart=[...daysOf(q)].every(d=>!A.has(d)),sum={stars:(acc.stars||0)+(q.stars||0),spent:(acc.spent||0)+(q.spent||0)};
+    acc=mergeSave(acc,q);if(apart)Object.assign(acc,sum)}  // ちがう日の きろくなら ⭐は たす(おなじ日は 大きいほう)
+  return acc}
+function consolidate(){const groups={};let changed=false;
+  for(const id of Object.keys(root.profiles)){const k=root.profiles[id].name||'';(groups[k]=groups[k]||[]).push(id)}
+  for(const k in groups){const g=groups[k];if(g.length<2)continue;
+    const real=g.filter(id=>!pristine(root.profiles[id])),keep=(real.length?real:g).slice().sort((a,b)=>(root.profiles[b].upd||0)-(root.profiles[a].upd||0))[0];
+    if(real.length){const m=combine(real.map(id=>root.profiles[id]));m.id=keep;root.profiles[keep]=Object.assign(newSave(keep),m)}
+    for(const id of g)if(id!==keep){delete root.profiles[id];root.del=[...new Set([...(root.del||[]),id])]}
+    if(g.includes(root.active))root.active=keep;changed=true}
+  if(!root.profiles[root.active])root.active=Object.keys(root.profiles)[0];save=root.profiles[root.active];return changed}
 function persist(){save.upd=Date.now();root.profiles[root.active]=save;try{localStorage.setItem(KEY,JSON.stringify(root))}catch(e){}cloudPush()}
 // 2つの きろくを あわせる: かずは 大きいほう、あつめた ものは ぜんぶ、せってい・にがては あたらしいほう。
 const LATEST=['name','grade','buddy','sound','theme','autoRead','rate','miss','srs','learned','yen','voice','openAll','acc','roomOn','voiceName'];
@@ -266,10 +284,10 @@ const CLOUD={db:null,uid:null,state:'wait',last:0,pushed:{},timer:null,busy:Prom
 const cdoc=k=>CLOUD.db.doc('data/users/'+CLOUD.uid+'/'+k);
 async function cloudInit(){
   setTimeout(()=>{if(CLOUD.state==='wait'){CLOUD.state='off';if(st.screen==='parent')parent()}},12000);
-  try{if(!window.claude||!window.claude.use){CLOUD.state='off';return}
-    const [db,user]=await Promise.all([window.claude.use('db'),window.claude.use('user')]);if(!db||!user){CLOUD.state='off';return}
-    const id=await user.id();if(!id){CLOUD.state='off';return}CLOUD.db=db;CLOUD.uid=id;
-    await cloudPull();CLOUD.state='ok';cloudPush(true)}catch(e){CLOUD.state='off'}}
+  try{if(!window.claude||!window.claude.use){CLOUD.state='off';splashReady();return}
+    const [db,user]=await Promise.all([window.claude.use('db'),window.claude.use('user')]);if(!db||!user){CLOUD.state='off';splashReady();return}
+    const id=await user.id();if(!id){CLOUD.state='off';splashReady();return}CLOUD.db=db;CLOUD.uid=id;
+    await cloudPull();CLOUD.state='ok';splashReady();cloudPush(true)}catch(e){CLOUD.state='off';splashReady()}}
 async function cloudPull(){if(!CLOUD.db)return;
   const ms=await cdoc('meta').get(),m=ms.exists?ms.data():{},del=new Set([...(root.del||[]),...(m.del||[])]);root.del=[...del];
   let got=false;
@@ -279,13 +297,19 @@ async function cloudPull(){if(!CLOUD.db)return;
     if(JSON.stringify(mg)!==JSON.stringify(cur)){got=true;root.profiles[id]=mg}}
   if(!root.profiles[root.active])root.active=Object.keys(root.profiles)[0]||root.active;
   if(!root.profiles[root.active]){root.profiles[root.active]=newSave(root.active)}
+  // この端末で いま できた からっぽの きろくより、アカウントに ある きろくを つかう
+  if(pristine(root.profiles[root.active])){const best=Object.values(root.profiles).filter(x=>!pristine(x)).sort((a,b)=>(b.upd||0)-(a.upd||0))[0];
+    if(best){const old=root.active;delete root.profiles[old];root.del=[...new Set([...(root.del||[]),old])];root.active=best.id;got=true}}
+  if(consolidate())got=true;
   save=root.profiles[root.active];
-  if(got){try{localStorage.setItem(KEY,JSON.stringify(root))}catch(e){}if(['home','parent'].includes(st.screen))(st.screen==='home'?home:parent)()}}
+  if(got){try{localStorage.setItem(KEY,JSON.stringify(root))}catch(e){}if(['home','parent','chars','book','shop','room','course'].includes(st.screen))home()}}
 function cloudPush(now){if(!CLOUD.db)return;clearTimeout(CLOUD.timer);if(!now){CLOUD.timer=setTimeout(()=>cloudPush(true),2500);return}
   CLOUD.busy=CLOUD.busy.then(async()=>{try{
-    for(const id of Object.keys(root.profiles)){const body=JSON.stringify(root.profiles[id]);if(CLOUD.pushed[id]===body)continue;
+    const ids=Object.keys(root.profiles).filter(id=>!pristine(root.profiles[id])||Object.keys(root.profiles).length===1);
+    for(const id of ids){const body=JSON.stringify(root.profiles[id]);if(CLOUD.pushed[id]===body)continue;
       await cdoc('p_'+id).set(JSON.parse(body));CLOUD.pushed[id]=body}
-    const mb=JSON.stringify({ids:Object.keys(root.profiles),del:root.del||[]});if(CLOUD.pushed._m!==mb){await cdoc('meta').set(JSON.parse(mb));CLOUD.pushed._m=mb}
+    for(const id of root.del||[])if(!CLOUD.pushed['x'+id]){try{await cdoc('p_'+id).delete()}catch(e){}CLOUD.pushed['x'+id]=1}
+    const mb=JSON.stringify({ids,del:root.del||[]});if(CLOUD.pushed._m!==mb){await cdoc('meta').set(JSON.parse(mb));CLOUD.pushed._m=mb}
     CLOUD.last=Date.now();CLOUD.state='ok'}catch(e){const c=String(e&&e.code||e);if(['not_granted','revoked','invalid_argument'].includes(c))CLOUD.state='off'}})}
 document.addEventListener('visibilitychange',()=>{if(document.hidden&&CLOUD.timer)cloudPush(true)});
 window.addEventListener('pagehide',()=>{if(CLOUD.timer)cloudPush(true)});
@@ -462,12 +486,15 @@ function soundBtn(){return `<button class="iconbtn" data-a="sound" aria-label="�
 function topbar(back){const r=rankInfo();return `<div class="top">${back?`<button class="iconbtn" data-a="${back}">${back==='home'?'← ホームへ':'← もどる'}</button>`:`<span class="chip">${r.cur[2]} <span class="s">★</span>${save.stars}</span>`}${soundBtn()}</div>`}
 const pName=p=>p.name||'なまえ なし';
 
-function splash(){st={screen:'splash'};const ps=Object.values(root.profiles);
-  const d=document.createElement('div');d.className='splash';d.innerHTML=`<div class="trio"><span class="ch bob">${charSVG('hachiware','happy')}</span><span class="ch bob d1">${charSVG('chiikawa','happy')}</span><span class="ch bob d2">${charSVG('usagi','happy')}</span></div>
+// きろくを よみこむ まで「はじめる」を まつ(からっぽの きろくで はじめて しまわないように)。8びょうで あきらめて はじめられる
+let splashOK=false;
+function splashInner(){const ps=Object.values(root.profiles);return `<div class="trio"><span class="ch bob">${charSVG('hachiware','happy')}</span><span class="ch bob d1">${charSVG('chiikawa','happy')}</span><span class="ch bob d2">${charSVG('usagi','happy')}</span></div>
   <div class="logo"><h1><span class="p">ちいかわ</span> <span class="m">えいご</span><span class="b">ランド</span></h1><span class="abc">A B C · Hello!</span></div>
-  ${ps.length>1?`<div class="whos">${ps.map(p=>`<button data-who="${p.id}">${esc(pName(p))}</button>`).join('')}</div>`:'<button class="go">▶ はじめる</button>'}<small>おとが でるよ</small>`;
-  document.body.appendChild(d);
-  d.addEventListener('click',e=>{const b=e.target.closest('[data-who]');if(ps.length>1&&!b)return;if(b)switchProfile(b.dataset.who);d.remove();started=true;sfx.tap();home()})}
+  ${!splashOK?'<button class="go" disabled style="opacity:.6">☁️ きろくを よみこみちゅう…</button>':ps.length>1?`<div class="whos">${ps.map(p=>`<button data-who="${p.id}">${esc(pName(p))}</button>`).join('')}</div>`:'<button class="go">▶ はじめる</button>'}<small>おとが でるよ</small>`}
+function splashReady(){if(splashOK)return;splashOK=true;const d=document.querySelector('.splash');if(d)d.innerHTML=splashInner()}
+function splash(){st={screen:'splash'};const d=document.createElement('div');d.className='splash';d.innerHTML=splashInner();document.body.appendChild(d);
+  setTimeout(splashReady,8000);
+  d.addEventListener('click',e=>{if(!splashOK)return;const ps=Object.values(root.profiles),b=e.target.closest('[data-who]');if(ps.length>1&&!b)return;if(b)switchProfile(b.dataset.who);d.remove();started=true;sfx.tap();home()})}
 function switchProfile(id){if(!root.profiles[id])return;root.profiles[root.active]=save;root.active=id;save=root.profiles[id];persist()}
 
 // 1日の ミッションは 3つ: すすむコース(10)・えほん(5)・すきな メニュー(5)=20ポイント。5日 ぜんぶで 1しゅう 100ポイント。
@@ -892,7 +919,7 @@ document.addEventListener('click',e=>{const b=e.target.closest('[data-a]');if(!b
   };
   if(H[a]){if(!['ans','chunk','sans','said'].includes(a))sfx.tap();H[a]()}});
 
-splash();home();cloudInit();
+consolidate();splash();home();cloudInit();
 document.addEventListener('change',e=>{if(e.target.id==='vsel'){save.voiceName=e.target.value;pickVoices();persist();parent();sayEn('Hello! How are you?')}});
 })();
 </script>
