@@ -878,10 +878,10 @@ function stageLine(where){const c=save.cp,rs=rcStats().said;
   return 'じぶんで いえる ことばが ふえてきたね! きょうも いってみよう!'}
 function logSpeak(){const l=save.log[today()]||(save.log[today()]={q:0,ok:0});l.sp=(l.sp||0)+1}
 const speakBtns=()=>`<div class="row">${SRc?'<button class="pill mint" id="recbtn" data-a="rec">🎤 はなす</button>':''}<button class="pill ${SRc?'':'mint'}" id="saidbtn" data-a="said" data-label="${SRc?'いえた!':'🎤 いえた!'}" disabled>👂 きいてね</button></div><p class="note" id="heard" style="text-align:center">${SRc?'「はなす」を おして えいごで いってね':'こえに だして いえたら「いえた!」を おしてね'}</p>`;
-// お手本を きいて、3びょう かぞえてから ボタンが おせる(ボタン れんだを ふせぐ)
+// お手本を きいて 3びょう たつと ボタンが おせる(かぞえる ひょうじは しない。ボタン れんだを ふせぐ)
 let lockT=null;
-function lockBtn(id,label){clearInterval(lockT);const b=document.getElementById(id);if(!b)return;let n=3;b.disabled=true;b.textContent=`🗣️ いってみて… ${n}`;
-  lockT=setInterval(()=>{const x=document.getElementById(id);if(!x){clearInterval(lockT);return}n--;if(n<=0){clearInterval(lockT);x.disabled=false;x.textContent=label||x.dataset.label}else x.textContent=`🗣️ いってみて… ${n}`},1000)}
+function lockBtn(id,label){clearTimeout(lockT);const b=document.getElementById(id);if(!b)return;b.disabled=true;b.textContent=id==='revealbtn'?'🤔 かんがえてね':'🗣️ いってみてね';
+  lockT=setTimeout(()=>{const x=document.getElementById(id);if(x){x.disabled=false;x.textContent=label||x.dataset.label}},3000)}
 function setBuddy(mood,line,anim){const b=document.getElementById('buddy'),bb=document.getElementById('bubble');st.mood=mood;st.line=line;
   if(b){b.innerHTML=bud(mood);b.classList.remove('jump','shake');void b.offsetWidth;b.classList.add(anim)}if(bb)bb.textContent=line}
 function answer(btn){if(st.lock||btn.disabled)return;const q=st.qs[st.i];
