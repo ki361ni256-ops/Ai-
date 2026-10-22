@@ -582,10 +582,12 @@ async function cloudInit(){
     const id=await user.id();if(!id){CLOUD.state='off';splashReady();return}CLOUD.db=db;CLOUD.uid=id;
     await cloudPull();CLOUD.state='ok';splashReady();cloudPush(true)}catch(e){CLOUD.state='off';splashReady()}}
 async function cloudPull(){if(!CLOUD.db)return;
-  const ms=await cdoc('meta').get(),m=ms.exists?ms.data():{},del=new Set([...(root.del||[]),...(m.del||[])]);root.del=[...del];
+  const ms=await cdoc('meta').get(),m=ms.exists?JSON.parse(JSON.stringify(ms.data())):{},del=new Set([...(root.del||[]),...(m.del||[])]);root.del=[...del];
   let got=false;
   for(const id of new Set([...Object.keys(root.profiles),...(m.ids||[])])){if(del.has(id)){delete root.profiles[id];continue}
-    const s=await cdoc('p_'+id).get();if(!s.exists)continue;const body=s.data();CLOUD.pushed[id]=JSON.stringify(body);
+    const s=await cdoc('p_'+id).get();if(!s.exists)continue;
+    // アカウントから よんだ データは かきかえ できない(こおっている)ので、かならず コピーして つかう
+    const raw=JSON.stringify(s.data()),body=JSON.parse(raw);CLOUD.pushed[id]=raw;
     const cur=root.profiles[id],mg=cur?mergeSave(cur,body):Object.assign(newSave(id),body);
     if(JSON.stringify(mg)!==JSON.stringify(cur)){got=true;root.profiles[id]=mg}}
   if(!root.profiles[root.active])root.active=Object.keys(root.profiles)[0]||root.active;
@@ -594,6 +596,7 @@ async function cloudPull(){if(!CLOUD.db)return;
   if(pristine(root.profiles[root.active])){const best=Object.values(root.profiles).filter(x=>!pristine(x)).sort((a,b)=>(b.upd||0)-(a.upd||0))[0];
     if(best){const old=root.active;delete root.profiles[old];root.del=[...new Set([...(root.del||[]),old])];root.active=best.id;got=true}}
   if(consolidate())got=true;
+  root=JSON.parse(JSON.stringify(root));  // まとめた あとも、のこった こおりを とかす
   save=root.profiles[root.active];
   if(got){try{localStorage.setItem(KEY,JSON.stringify(root))}catch(e){}if(['home','parent','chars','book','shop','room','course'].includes(st.screen))home()}}
 function cloudPush(now){if(!CLOUD.db)return;clearTimeout(CLOUD.timer);if(!now){CLOUD.timer=setTimeout(()=>cloudPush(true),2500);return}
@@ -607,6 +610,13 @@ function cloudPush(now){if(!CLOUD.db)return;clearTimeout(CLOUD.timer);if(!now){C
 document.addEventListener('visibilitychange',()=>{if(document.hidden&&CLOUD.timer)cloudPush(true)});
 window.addEventListener('pagehide',()=>{if(CLOUD.timer)cloudPush(true)});
 
+/* ---------- うまく うごかない ときの きろく ----------
+   エラーが おきたら、この 端末と アカウントに さいご 20こを のこす(おうちの ひと画面と Claude が よめる)。 */
+let errBox=[];try{errBox=JSON.parse(localStorage.getItem(KEY+'-err')||'[]')}catch(e){}
+function logErr(where,err){try{const m=String(err&&err.stack||err&&err.message||err).slice(0,400);errBox.push({t:new Date().toISOString(),where,m,screen:(typeof st!=='undefined'&&st)?st.screen:'',ua:navigator.userAgent.slice(0,120)});errBox=errBox.slice(-20);
+  try{localStorage.setItem(KEY+'-err',JSON.stringify(errBox))}catch(e){}if(CLOUD.db)cdoc('err').set({list:errBox}).catch(()=>{})}catch(e){}}
+window.addEventListener('error',e=>logErr('error',e.error||e.message));
+window.addEventListener('unhandledrejection',e=>logErr('promise',e.reason));
 /* ---------- おと ---------- */
 let ac=null,themeNodes=[],bgmT=null,started=false;
 function tone(freq,start,dur,type,vol,keep){if(!save.sound)return;
@@ -1153,6 +1163,7 @@ function parent(){const was=st.screen;st={screen:'parent'};if(!parentOK){gate();
    <div class="row" style="justify-content:flex-start"><button class="gradechip" data-a="bkmake">ひかえを つくる</button></div>
    <textarea class="codebox" id="bkout" readonly hidden aria-label="ひかえの コード"></textarea><div class="row" style="justify-content:flex-start"><button class="gradechip" data-a="bkcopy" id="bkcopy" hidden>コピー</button></div>
    <textarea class="codebox" id="bkin" placeholder="ひかえの コードを はりつけて「よみこむ」" aria-label="よみこむ コード"></textarea><div class="row" style="justify-content:flex-start"><button class="gradechip" data-a="bkload">よみこむ(いまの きろくと あわせる)</button></div><p class="note" id="bkmsg"></p></div>
+  ${errBox.length?`<div class="panel"><h2>🛠️ うまく うごかなかった きろく</h2><p class="note">さいきん ${errBox.length}かい エラーが ありました。Claude に「エラーの きろくを みて」と つたえると しらべられます。</p><p class="note">${esc(errBox[errBox.length-1].t.slice(0,16).replace('T',' '))} ${esc(errBox[errBox.length-1].where)}:${esc(errBox[errBox.length-1].m.split('\n')[0])}</p></div>`:''}
   <div class="panel"><h2>👧 こどもの なまえ・きょうだい</h2>
    <div class="prow"><input class="search" id="pname" maxlength="12" placeholder="なまえ(ひらがな でも OK)" value="${esc(save.name)}"><button class="pill mint" data-a="rename">なまえを ほぞん</button></div>
    <div class="row">${Object.values(root.profiles).map(p=>`<button class="gradechip" data-a="pick" data-k="${p.id}" ${p.id===root.active?'style="border-color:var(--pink-d)"':''}>${esc(pName(p))}</button>`).join('')}<button class="gradechip" data-a="addp">＋ きょうだいを ついか</button></div>
@@ -1210,7 +1221,7 @@ document.addEventListener('click',e=>{const b=e.target.closest('[data-a]');if(!b
      // リセットは ほかの たんまつの きろくと あわさって もどらないよう、新しい id に する
      const old=root.active,id=pid();delete root.profiles[old];root.del=[...new Set([...(root.del||[]),old])];root.profiles[id]=Object.assign(newSave(id),keep);root.active=id;save=root.profiles[id];resetAsk=false;persist();parent()}
   };
-  if(H[a]){if(!['ans','chunk','sans','said'].includes(a))sfx.tap();H[a]()}});
+  if(H[a]){try{if(!['ans','chunk','sans','said'].includes(a))sfx.tap()}catch(err){}try{const r=H[a]();if(r&&r.catch)r.catch(err=>logErr('tap:'+a,err))}catch(err){logErr('tap:'+a,err)}}});
 
 consolidate();splash();home();cloudInit();
 document.addEventListener('change',e=>{if(e.target.id==='vsel'){save.voiceName=e.target.value;pickVoices();persist();parent();sayEn('Hello! How are you?')}});
