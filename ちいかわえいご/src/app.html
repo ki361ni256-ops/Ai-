@@ -214,7 +214,7 @@ body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset
 .codebox{width:100%;box-sizing:border-box;min-height:70px;border:3px solid var(--line);border-radius:14px;padding:8px;font-size:12px;font-family:monospace;word-break:break-all;background:var(--paper);color:var(--ink)}
 .gain p{margin:0;font-size:17px;line-height:1.6;text-align:left}.gain{align-self:stretch}
 
-.hero2{position:relative;padding-right:74px}.hero2>.ch{width:90px;flex:none;padding:0}.hrow{display:flex;gap:6px;flex-wrap:wrap}
+.hero2{position:relative;padding-right:74px}.hero2 .chg{min-height:42px;font-size:15px;padding:6px 12px}.hero2>.ch{width:90px;flex:none;padding:0}.hrow{display:flex;gap:6px;flex-wrap:wrap}
 .lvchip{position:absolute;right:10px;top:10px;background:var(--pink);color:#fff;border-radius:16px;padding:4px 8px;font-size:12px;text-align:center;line-height:1.2}.lvchip b{font-family:var(--en);font-size:17px;color:#fff}
 .gobtn{background:var(--pink-d);color:#fff;border-radius:28px;padding:20px 18px;display:flex;align-items:center;gap:14px;text-align:left;box-shadow:0 7px 0 #c04f6f;min-height:96px}
 .gobtn:active{transform:translateY(4px);box-shadow:0 3px 0 #c04f6f}.gobtn .ic{font-size:44px;flex:none}.gobtn b{display:block;font-size:26px;color:#fff}.gobtn span span{font-size:15px;color:#fff;opacity:.95}
@@ -227,6 +227,7 @@ body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset
 .kchips{display:flex;flex-wrap:wrap;gap:6px}.kchip{background:var(--bg);border:2px solid var(--line);border-radius:999px;padding:2px 10px;font-size:13px;font-family:var(--en)}
 .logo.small{margin-top:4px}
 @media (prefers-reduced-motion:reduce){.bob,.jump,.shake,.pop{animation:none}.confetti{display:none}}
+@media (max-width:440px){.q .tag{position:static;max-width:100%;margin-top:-4px}}
 @media (max-width:380px){.words{grid-template-columns:repeat(2,1fr)}.gradegrid{grid-template-columns:repeat(3,1fr)}.tiles{grid-template-columns:repeat(2,1fr)}}
 </style>
 
@@ -572,7 +573,7 @@ function missions(){const t=today(),M=save.mis;if(!M[t]||!M[t].l.includes('cours
   return M[t]}
 function missionHit(keys){const m=missions(),was=m.d.length>=m.l.length;keys.forEach(k=>{if(m.l.includes(k)&&!m.d.includes(k))m.d.push(k)});return !was&&m.d.length>=m.l.length}
 function todayCard(){const m=missions(),n=m.d.length,all=n>=m.l.length;
-  const P=save.mp[today()]||{},info=k=>{if(k==='course'){const u=uNow(),sx=save.cp%3;return {ic:'🗺️',t:'すすむコース',s:`${save.cp>=UNITS.length*3?'ふくしゅう':`ユニット${u+1}「${UNITS[u].t}」の ${STEP[sx][0]}`} ・ 10ポイント`,a:'data-a="cnext"'}}
+  const P=save.mp[today()]||{},info=k=>{if(k==='course'){const bp=bossPending();if(bp!=null)return {ic:'⚔️',t:'ボスに ちょうせん',s:`${AREAS[bp].t}の ボス ・ 10ポイント`,a:'data-a="cnext"'};const u=uNow(),sx=save.cp%3;return {ic:'🗺️',t:'すすむコース',s:`${save.cp>=UNITS.length*3?'ふくしゅう':`ユニット${u+1}「${UNITS[u].t}」の ${STEP[sx][0]}`} ・ 10ポイント`,a:'data-a="cnext"'}}
     if(k==='story')return {ic:'📖',t:'えほんを 1さつ',s:'よんで クイズに こたえる ・ 5ポイント',a:'data-a="stories"'};
     const mc=missCount(),due=dueCount();
     if(mc)return {ic:'📝',t:'にがて ふくしゅう',s:`まえに まちがえた ${mc}もん ・ 5ポイント(ほかの メニューでも OK)`,a:'data-a="start" data-k="review"'};
@@ -609,7 +610,7 @@ function home(){st={screen:'home'};stopTalk();const r=rankInfo(),m=missions(),al
   <div class="charbtn hero2"><button class="ch bob" data-a="btalk" aria-label="はなしかける">${bud(all?'happy':'normal')}</button><span class="cb"><span class="say" id="hsay">${CHARS[save.buddy].name}「${said}」</span>
    <span class="hrow"><button class="chg" data-a="btalk">🗣️ はなしかけて みる</button><button class="chg" data-a="chars">🧸 なかま</button></span></span><span class="lvchip">なかよし<br><b>Lv ${lvl()}</b></span></div>
   <button class="gobtn ${G.done?'done':''}" data-a="go"><span class="ic">${G.ic}</span><span><b>${esc(G.t)}</b><span>${esc(G.s)}</span></span><span class="arrow">▶</span></button>
-  ${canSpeak()?'':'<div class="warn">🔇 この 端末では えいごの よみあげが つかえません。もじで とけるように して います。べつの ブラウザ(Chrome・Edge・Safari)で ひらくと こえが でます。</div>'}
+  ${canSpeak()?'':'<div class="warn">🔇 この たんまつでは えいごの よみあげが つかえません。もじで とけるように して います。べつの ブラウザ(Chrome・Edge・Safari)で ひらくと こえが でます。</div>'}
   ${growCard()}
   ${save.gacha[today()]?'':'<button class="gachabtn" data-a="gacha"><span class="ic">🎰</span><span><b>きょうの シールくじ</b><span>1にち 1かい ひけるよ!</span></span></button>'}
   ${todayCard()}
@@ -633,7 +634,7 @@ function home(){st={screen:'home'};stopTalk();const r=rankInfo(),m=missions(),al
   window.scrollTo(0,0);bgmSync()}
 // なかまが ならった 英語で はなしかけて くる(ひらいた ユニットの かいわ から)
 let btalkD=null;
-function btalk(){const ks=talkKeys(),known=ks.filter(k=>save.kn['d:'+k]),k=pick(known.length?known:ks);btalkD=DIALOGS[k];const el=document.getElementById('hsay');
+function btalk(){const known=Object.keys(DIALOGS).filter(k=>save.kn['d:'+k]),k=pick(known.length?known:['greet']);btalkD=DIALOGS[k];const el=document.getElementById('hsay');
   if(el)el.innerHTML=`${esc(CHARS[save.buddy].name)}「<span class="en">${esc(btalkD.q)}</span>」<br><small>(${esc(btalkD.qja)})えいごで こたえてみて!</small><br><button class="chg" data-a="bans">💡 こたえを きく</button>`;sayEn(btalkD.q)}
 function bans(){if(!btalkD)return;const el=document.getElementById('hsay');if(el)el.innerHTML=`<span class="en">${esc(btalkD.q)}</span><br>👉 <span class="en">${esc(btalkD.a)}</span><br><small>(${esc(btalkD.aja)})いえたかな?</small>`;sayEn(btalkD.a)}
 function chars(){st={screen:'chars'};window.scrollTo(0,0);
@@ -658,7 +659,7 @@ function quiz(){const q=st.qs[st.i];st.ord=[];
   const tag=q.retry?'🔁 さっきの もんだい':q.fromBox?'📝 にがて':q.fromSrs?'⏰ ふくしゅう':st.kind==='boss'?'⚔️ ボス':st.kind==='course'&&st.meta?`🗺️ ユニット${st.meta.u+1}`:st.kind==='daily'&&MODE[q.mode]?MODE[q.mode].ic+' '+MODE[q.mode].name:'';
   $app.innerHTML=`<div class="quizhead"><button class="iconbtn" data-a="quit" aria-label="やめる">✕</button><div class="prog">${prog}</div><span class="chip">${st.i+1}/${st.qs.length}</span></div>
   <div class="talk"><div class="ch" id="buddy">${bud(st.mood)}</div><div class="bubble" id="bubble">${esc(st.line)}</div></div>
-  <div class="q">${tag?`<span class="tag">${tag}</span>`:''}<span class="say">${q.type==='choice'||q.type==='order'?'<button class="iconbtn" data-a="hint" id="hintbtn" aria-label="ヒント">💡</button>':''}<button class="iconbtn" data-a="say" aria-label="きく">🔊</button>${q.audio?'<button class="iconbtn" data-a="slow" aria-label="ゆっくり きく">🐢</button>':''}</span>
+  <div class="q">${tag?`<span class="tag">${tag}</span>`:''}<span class="say">${q.type==='choice'||q.type==='order'?'<button class="iconbtn" data-a="hint" id="hintbtn" aria-label="ヒント">💡 ヒント</button>':''}<button class="iconbtn" data-a="say" aria-label="きく">🔊</button>${q.audio?'<button class="iconbtn" data-a="slow" aria-label="ゆっくり きく">🐢</button>':''}</span>
     ${q.html}<p class="ask">${esc(q.type==='order'&&q.join===' '?'ことばを ならべて えいごに しよう':q.ask)}</p></div>
   <div id="learn"></div>
   ${q.type==='order'?'<div id="order"></div>':q.type==='speak'?speakBtns():q.type==='recall'?recallBtns(q)
@@ -827,7 +828,7 @@ function stepQs(i,sx){const u=UNITS[i],b=bNow(),qs=[],used=new Set(),add=q=>{if(
   // 2かい つづけて 6わり みまん だった ステップは、きいて えらぶ 中心・3たくの やさしい 形に する
   const wordMode=en=>{const w=WBY[en],ms=[];if(easy)return w.e?'listen':'say';if(w.e)ms.push('listen');if(b>=2){ms.push('say','meaning');if(/^[a-z]+$/.test(en)&&en.length<=(b===2?6:9))ms.push('spell')}else if(!w.e)ms.push('say');return pick(ms)};
   if(sx===0)shuffle(u.w).forEach(en=>add(makeQ(WBY[en].e?'listen':'say',en)));
-  if(sx===1){const due=dueItems().filter(id=>!u.w.includes(id.slice(2))).slice(0,2);due.forEach(id=>add(reviewQ(id)));shuffle(u.w).forEach(en=>add(makeQ(wordMode(en),en)));if(!due.length)shuffle(prev).slice(0,2).forEach(en=>add(makeQ(WBY[en].e?'listen':'say',en)));add(makeQ('speak',pick(u.w.filter(en=>WBY[en].e))||u.w[0]));const rw=u.w.filter(en=>WBY[en].e);if(rw.length)add(makeQ('recall','w:'+pick(rw)))}
+  if(sx===1){const due=easy?[]:dueItems().filter(id=>!u.w.includes(id.slice(2))).slice(0,2);due.forEach(id=>add(reviewQ(id)));shuffle(u.w).forEach(en=>add(makeQ(wordMode(en),en)));if(!due.length)shuffle(prev).slice(0,2).forEach(en=>add(makeQ(WBY[en].e?'listen':'say',en)));add(makeQ('speak',pick(u.w.filter(en=>WBY[en].e))||u.w[0]));const rw=u.w.filter(en=>WBY[en].e);if(rw.length)add(makeQ('recall','w:'+pick(rw)))}
   if(sx===2){add(makeQ('talk',u.d));const others=shuffle(UNITS.slice(0,i).map(x=>x.d).filter(d=>d!==u.d));[...new Set(others)].slice(0,3).forEach(d=>add(makeQ('talk',d)));
     shuffle(u.w).slice(0,2).forEach(en=>add(makeQ(wordMode(en),en)));add(makeQ('tspeak',u.d));add(makeQ('recall','d:'+u.d))}
   EASY=false;const out=qs.filter(Boolean);out.easy=easy;return out}
@@ -952,7 +953,7 @@ function gateKey(k){if(k==='←')gateIn=gateIn.slice(0,-1);else if(k==='OK'){if(
 const SK_NAME={L:['👂','きく'],S:['🗣️','はなす'],R:['📖','よむ'],W:['✏️','かく(ならべる)']};
 function skillPanel(){const sk={L:{n:0,ok:0},S:{n:0,ok:0},R:{n:0,ok:0},W:{n:0,ok:0}};
   for(const [m,v] of Object.entries(save.stats))if(SKILL[m]&&v&&typeof v==='object'){sk[SKILL[m]].n+=v.n;sk[SKILL[m]].ok+=v.ok}
-  const K=Object.entries(save.kn),ms=K.filter(([,r])=>r.ms),need=K.filter(([,r])=>dNum(r.due)<=dNum(today())||r.ng>r.ok),imp=K.filter(([,r])=>r.wd&&(r.ms||r.st>=2&&r.lo>r.wd));
+  const K=Object.entries(save.kn),ms=K.filter(([,r])=>r.ms),need=K.filter(([,r])=>dNum(r.due)<=dNum(today())||r.ng>r.ok),imp=K.filter(([,r])=>r.wd&&(r.ms||r.st>=2&&r.lo&&dNum(r.lo)>dNum(r.wd)));
   const ind=K.reduce((a,[,r])=>a+(r.ind||0),0),hin=K.reduce((a,[,r])=>a+(r.h||0),0),sp=Object.values(save.log).reduce((a,l)=>a+(l.sp||0),0);
   const mins=k=>Math.round(((save.log[k]||{}).sec||0)/60),wkm=weekDays().reduce((a,d)=>a+mins(dkey(d)),0),allm=Math.round(Object.values(save.log).reduce((a,l)=>a+(l.sec||0),0)/60);
   const weak=Object.entries(sk).filter(([k,v])=>k!=='S').sort((a,b)=>(a[1].n?a[1].ok/a[1].n:0)-(b[1].n?b[1].ok/b[1].n:0))[0];
