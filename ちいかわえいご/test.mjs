@@ -23,7 +23,7 @@ await p.click('[data-a="course"]');await p.waitForTimeout(300);await p.screensho
 await p.click('[data-a="unit"][data-k="0"]');await p.screenshot({path:S+'/c_unit.png',fullPage:true});
 await p.click('[data-a="ustep"][data-k="0:2"]').catch(()=>console.log('step3 locked as expected'));
 await p.click('[data-a="course"]');await p.click('[data-a="home"]');
-await p.click('[data-a="start"][data-k="talk"]');await p.waitForTimeout(300);await p.screenshot({path:S+'/c_talk.png'});
+await p.evaluate(()=>{const m=document.getElementById('menus');if(m)m.open=true});await p.click('[data-a="start"][data-k="talk"]');await p.waitForTimeout(300);await p.screenshot({path:S+'/c_talk.png'});
 await round();console.log('talk result:',(await p.textContent('.ptsbox')).replace(/\s+/g,' '));
 await p.click('[data-a="home"]');await p.screenshot({path:S+'/c_home2.png',fullPage:true});
 await p.click('[data-a="parent"]');const q=await p.textContent('.word');const [a,bb]=q.match(/\d+/g).map(Number);
