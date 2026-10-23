@@ -226,6 +226,12 @@ body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset
 .pnode.boss .dot{width:62px;height:62px;margin-left:-33px;border-color:var(--lav-d)}.pnode.boss .dot .ch{width:50px}.pnode.boss .t{border-color:var(--lav)}.pnode.boss.here .t{border-color:var(--pink-d)}.pnode.boss.ok .dot{background:var(--yellow)}
 .kchips{display:flex;flex-wrap:wrap;gap:6px}.kchip{background:var(--bg);border:2px solid var(--line);border-radius:999px;padding:2px 10px;font-size:13px;font-family:var(--en)}
 .logo.small{margin-top:4px}
+.word.big{font-size:clamp(44px,14vw,68px)}
+.newtag{background:var(--pink-d);color:#fff;border-radius:999px;padding:2px 14px;font-family:var(--en);font-size:18px}
+.chip.combo{color:var(--pink-d);margin-left:4px}
+.wordbtn{background:var(--yellow);border-radius:24px;padding:14px 18px;display:flex;align-items:center;gap:14px;text-align:left;box-shadow:0 6px 0 var(--yellow-d)}
+.wordbtn:active{transform:translateY(4px);box-shadow:0 2px 0 var(--yellow-d)}.wordbtn .ic{font-size:38px}.wordbtn b{display:block;font-size:22px}.wordbtn span span{font-size:14px}
+.tres{align-self:stretch;text-align:left}.tres h2{font-size:17px}
 @media (prefers-reduced-motion:reduce){.bob,.jump,.shake,.pop{animation:none}.confetti{display:none}}
 @media (max-width:440px){.q .tag{position:static;max-width:100%;margin-top:-4px}}
 @media (max-width:380px){.words{grid-template-columns:repeat(2,1fr)}.gradegrid{grid-template-columns:repeat(3,1fr)}.tiles{grid-template-columns:repeat(2,1fr)}}
@@ -258,7 +264,7 @@ const DAY_CAP=20,WEEK_GOAL=100,ROUND_N=8,DAILY_N=10,WD=['げつ','か','すい',
 
 /* ---------- ほぞん(この 端末 + claude.ai アカウント) ---------- */
 const KEY='chiikawa-eigo-v1';
-const newSave=id=>({id,name:'',grade:1,buddy:'chiikawa',stars:0,pts:{},days:{},att:{},stats:{},best:{},miss:{},srs:{},stickers:[],learned:[],read:{},mis:{},log:{},weeks:{},mp:{},cp:0,yen:100,voice:'us',openAll:false,adj:{},spent:0,acc:'',owned:{acc:[],friend:[],room:[]},roomOn:[],gacha:{},stk:{},rc:{},fok:{},ucl:{},voiceName:'',kn:{},adapt:{},boss:{},blv:1,lastDay:'',sound:true,theme:true,autoRead:true,rate:.8,upd:0});
+const newSave=id=>({id,name:'',grade:1,buddy:'chiikawa',stars:0,pts:{},days:{},att:{},stats:{},best:{},miss:{},srs:{},stickers:[],learned:[],read:{},mis:{},log:{},weeks:{},mp:{},cp:0,yen:100,voice:'us',openAll:false,adj:{},spent:0,acc:'',owned:{acc:[],friend:[],room:[]},roomOn:[],gacha:{},stk:{},rc:{},fok:{},ucl:{},voiceName:'',kn:{},adapt:{},boss:{},wp:{},tests:[],blv:1,lastDay:'',sound:true,theme:true,autoRead:true,rate:.8,upd:0});
 const pid=()=>'p'+Date.now().toString(36)+Math.random().toString(36).slice(2,6);
 function readJSON(k){try{const r=localStorage.getItem(k);return r?JSON.parse(r):null}catch(e){return null}}
 let root=readJSON(KEY);
@@ -353,7 +359,7 @@ function playTheme(v){stopNotes();if(!save.sound||!save.theme)return;v=v||1;cons
   let t=.05;mel.forEach(([m,d])=>{tone(f(m),t,d*B*.95,'triangle',.15*v,1);t+=d*B});
   [48,55,52,55,53,57,55,59,48,55,52,55,50,55,48,48].forEach((m,i)=>tone(f(m),.05+i*2*B,B*1.2,'sine',.15*v,1))}
 function stopNotes(){themeNodes.forEach(o=>{try{o.stop()}catch(e){}});themeNodes=[]}
-const BGM_SCREENS=['home','chars','grade','book','dict','stories','parent','who','gate','course','unit','shop','room','gacha'];
+const BGM_SCREENS=['home','chars','grade','book','dict','stories','parent','who','gate','course','unit','shop','room','gacha','wordhome'];
 function bgmSync(){const want=started&&save.sound&&save.theme&&!document.hidden&&BGM_SCREENS.includes(st.screen);
   if(!want){clearTimeout(bgmT);bgmT=null;stopNotes();return}if(bgmT)return;
   let first=true;const loop=()=>{playTheme(first?1:.55);first=false;bgmT=setTimeout(loop,9000)};loop()}
@@ -442,6 +448,28 @@ function distract(w,n,need){const ok=x=>x.en!==w.en&&x.ja!==w.ja&&(!need||x[need
   let p=shuffle(WORDS.filter(x=>x.c===w.c&&ok(x)));if(p.length<n)p=p.concat(shuffle(WORDS.filter(x=>x.c!==w.c&&ok(x))));
   const out=[];for(const x of p){if(out.length>=n)break;if(need==='e'&&out.some(o=>o.e===x.e))continue;if(need==='e'&&x.e===w.e)continue;out.push(x)}return out}
 // 1もんを つくる。item は ことば(英語)、もじ、ぶんの ばんごう。
+/* ---------- たんご アプリ ----------
+   1かい 20もん:わすれそうな ことば → コースで ひらいた ことば → まだ しらない ことば(はじめは NEW! で しょうかい)→ しってる ことば の じゅんに えらぶ。
+   えいごを 大きく みせて よみあげ、え を えらぶ(1ねんせいでも できる)。おわると 3ポイント(1日 2かいまで)。 */
+const WORD_N=20,WORD_PTS=3,WORD_MAX=2,TEST_N=10;
+function wordPool(){const b=bNow(),open=new Set(UNITS.slice(0,Math.floor(save.cp/3)+1).flatMap(u=>u.w));return WORDS.filter(w=>w.e&&(w.b<=b||open.has(w.en)))}
+function wordRound(){const pool=wordPool(),K=save.kn,has=new Set(),known=[],fresh=[];
+  const addK=en=>{if(!has.has(en)&&WBY[en]&&WBY[en].e&&K['w:'+en]){has.add(en);known.push(en)}};
+  dueItems().filter(id=>id[0]==='w').forEach(id=>addK(id.slice(2)));shuffle(pool.filter(w=>K['w:'+w.en])).forEach(w=>addK(w.en));
+  const newCap=known.length>=14?6:10;  // はじめての ことばは 1かいに 6〜10こまで
+  const openW=UNITS.slice(0,Math.floor(save.cp/3)+1).flatMap(u=>u.w);
+  [...shuffle(openW),...shuffle(pool.map(w=>w.en))].forEach(en=>{if(fresh.length<newCap&&!has.has(en)&&WBY[en]&&WBY[en].e&&!K['w:'+en]){has.add(en);fresh.push(en)}});
+  const fmt=en=>pick(bNow()===1?['see','see','listen']:['see','listen','say','meaning']);
+  const kq=known.slice(0,Math.max(0,WORD_N-fresh.length*2)).map(en=>makeQ(fmt(en),en));
+  // あたらしい ことば:しょうかい → 2もん あとで「みて えらぶ」→ さいごの ほうで「きいて えらぶ」
+  const seq=[],later=[],pend=[];fresh.forEach(en=>{seq.push(makeQ('intro',en));seq.push(...kq.splice(0,2));if(pend.length)seq.push(pend.shift());pend.push(makeQ('see',en));later.push(makeQ('listen',en))});seq.push(...pend);
+  const tail=shuffle([...kq,...later]);let qs=[...seq,...tail],n=0;qs=qs.filter(q=>q.type==='intro'||++n<=WORD_N);
+  return qs.filter((q,i)=>q.type!=='intro'||qs.slice(i+1).some(x=>x.type!=='intro'&&x.item===q.item))}
+// ふりかえり テスト:であった ことばから 10もん(よわい・わすれそうな ものを さきに)。ヒント なし
+function testRound(){const K=save.kn,ids=Object.keys(K).filter(id=>id[0]==='w'&&WBY[id.slice(2)]&&WBY[id.slice(2)].e);
+  let cand=ids.sort((a,b)=>(K[a].st-K[b].st)||(dNum(K[a].due)-dNum(K[b].due))).slice(0,16);if(cand.length<TEST_N)cand=cand.concat(shuffle(wordPool().map(w=>'w:'+w.en)).filter(x=>!cand.includes(x))).slice(0,16);
+  const pickd=shuffle(cand).slice(0,TEST_N),b=bNow();
+  return pickd.map((id,i)=>{const en=id.slice(2),m=b===1?(i%3===2?'tread':'listen'):pick(['listen','tread','say','meaning']);const q=makeQ(m,en);q.test=true;return q})}
 function makeQ(mode,item,sub){
   const key=mode+':'+item+(sub?':'+sub:'');
   if(mode==='abc'){const L=LET.find(x=>x.l===item);sub=sub||(bNow()===1&&Math.random()<.5?'case':Math.random()<.6?'first':'case');
@@ -466,6 +494,10 @@ function makeQ(mode,item,sub){
     return {mode,item,key,type:'choice',ctype:'ctalk',one:true,ask:'なんて こたえる?',html:`<div class="word" style="font-size:clamp(26px,8vw,38px)">${esc(D.q)}</div><div class="sub">${esc(D.qja)}</div>`,audio:D.q,after:D.a,answer:D.a,choices:ch,
       choiceHTML:Object.fromEntries(ch.map(c=>[c,`<span class="en">${esc(c)}</span>${helper?`<small class="cja">${esc(c===D.a?D.aja:JA_OF[c]||'')}</small>`:''}`])),full:`${D.q} → ${D.a}`,explain:D.aja}}
   const w=WBY[item];
+  // たんご アプリ:えいごを みせて よみあげ → え を えらぶ(see)/もじだけ よんで え を えらぶ(tread)/はじめての ことばの しょうかい(intro)
+  if(mode==='intro')return {mode,item,key:'intro:'+item,type:'intro',ask:'あたらしい ことば!',html:`<div class="newtag">NEW!</div><div class="emoji">${w.e}</div><div class="word big">${esc(w.en)}</div><div class="ja">${esc(w.ja)}</div>`,audio:w.en,full:'',explain:''};
+  if(mode==='see'||mode==='tread'){const ch=shuffle([w,...distract(w,nCh()-1,'e')]);
+    return {mode,item,key,type:'choice',ctype:'cpic',ask:mode==='see'?'この えいごは どれ?':'もじを よんで えらんでね(おとは なし)',html:`<div class="word big">${esc(w.en)}</div>`,audio:mode==='see'?w.en:null,after:w.en,answer:w.en,choices:ch.map(x=>x.en),choiceHTML:Object.fromEntries(ch.map(x=>[x.en,x.e])),full:`${w.e} ${w.en}`,explain:`「${w.en}」は「${w.ja}」だよ。`}}
   if(mode==='listen'){const ch=shuffle([w,...distract(w,nCh()-1,'e')]);
     return {mode,item,key,type:'choice',ctype:'cpic',ask:'きこえた ものは どれ?',html:`<button class="bigsay" data-a="say" aria-label="もういちど きく">🔊</button>${canSpeak()?'':`<div class="word">${esc(w.en)}</div><p class="note">おとが でないので もじで みてね</p>`}`,audio:w.en,answer:w.en,choices:ch.map(x=>x.en),choiceHTML:Object.fromEntries(ch.map(x=>[x.en,x.e])),full:`${w.e} ${w.en}`,explain:`「${w.en}」は「${w.ja}」だよ。`}}
   if(mode==='say'){const ch=shuffle([w,...distract(w,nCh()-1)]);
@@ -492,7 +524,7 @@ const itemLabel=(mode,item)=>mode==='abc'?item.toUpperCase()+' '+item:(mode==='o
    考え方は ことばごとに 忘れる 速さを 見つもる 研究(Settles & Meeder 2016)を かんたんに した もの */
 const IV=[1,1,2,4,8,16,32];
 function itemOf(q){const m=q.mode;if(m==='recall')return q.item;if(m==='talk'||m==='tspeak')return 'd:'+q.item;if(m==='order'||m==='hear')return 's:'+q.item;if(m==='abc')return 'l:'+q.item;return 'w:'+q.item}
-const SKILL={listen:'L',hear:'L',talk:'L',speak:'S',tspeak:'S',recall:'S',abc:'R',meaning:'R',say:'R',spell:'W',order:'W'};
+const SKILL={see:'L',tread:'R',listen:'L',hear:'L',talk:'L',speak:'S',tspeak:'S',recall:'S',abc:'R',meaning:'R',say:'R',spell:'W',order:'W'};
 function itemLabel2(id){const t=id[0],k=id.slice(2);return t==='w'?(WBY[k]?`${WBY[k].e||''} ${k}`:k):t==='d'?(DIALOGS[k]?DIALOGS[k].a:k):t==='s'?(SENTS[k]?SENTS[k][0]:k):t==='l'?k.toUpperCase()+' '+k:id}
 function learn(q,res){if(!q||q.mode==='speak'&&res!=='said')return;const id=itemOf(q),t=today(),K=save.kn;
   const isNew=!K[id];const r=K[id]||(K[id]={f:t,l:'',n:0,ok:0,ng:0,h:0,ind:0,sp:0,fm:{},lm:'',st:0,sd:'',fo:'',lo:'',due:t,ms:'',wd:''});
@@ -514,7 +546,7 @@ function migrateKn(){if(save.knv)return;const K=save.kn||(save.kn={}),t=today();
   for(const [k,m] of Object.entries(save.miss||{})){const id=itemOf({mode:m.mode,item:m.item});if(K[id]){K[id].ng=Math.max(1,K[id].ng);K[id].wd=K[id].wd||t;K[id].due=t}}
   save.knv=1}
 function formatsFor(id){const t=id[0],k=id.slice(2),b=bNow();
-  if(t==='w'){const w=WBY[k];if(!w)return [];const f=[];if(w.e)f.push('listen','recall');if(b>=2||!w.e)f.push('say');if(b>=2)f.push('meaning');if(b>=2&&/^[a-z]+$/.test(k)&&k.length<=9)f.push('spell');return f}
+  if(t==='w'){const w=WBY[k];if(!w)return [];const f=[];if(w.e)f.push('listen','recall','see');if(b>=2||!w.e)f.push('say');if(b>=2)f.push('meaning');if(b>=2&&/^[a-z]+$/.test(k)&&k.length<=9)f.push('spell');return f}
   if(t==='d')return DIALOGS[k]?['talk','recall']:[];
   if(t==='s')return SENTS[k]?(b>=2?['hear','order']:['hear']):[];
   if(t==='l')return LET.some(x=>x.l===k)?['abc']:[];return []}
@@ -535,6 +567,7 @@ const missCount=id=>Object.values(save.miss).filter(m=>!id||m.mode===id).length;
 const validItem=(mode,item)=>mode==='recall'?(item.startsWith('d:')?!!DIALOGS[item.slice(2)]:!!WBY[item.slice(2)]):(mode==='talk'||mode==='tspeak')?!!DIALOGS[item]:MODE[mode]&&(mode==='abc'?LET.some(l=>l.l===item):(mode==='order'||mode==='hear')?!!SENTS[item]:!!WBY[item]);
 function fromStore(m,flag){const q=makeQ(m.mode,m.item,m.sub||undefined);q[flag]=true;return q}
 function makeRound(kind){const used=new Set(),qs=[];const add=q=>{if(q&&!used.has(q.key)){used.add(q.key);qs.push(q)}};
+  if(kind==='words')return wordRound();if(kind==='wtest')return testRound();
   if(kind==='due'){dueItems().slice(0,ROUND_N).forEach(id=>add(reviewQ(id)));
     const pool=poolFor('recall');let g=0;while(qs.length<6&&g++<50)add(makeQ('recall',pick(pool)));return qs}
   if(kind==='review'){shuffle(Object.values(save.miss).filter(m=>validItem(m.mode,m.item))).slice(0,ROUND_N).forEach(m=>add(fromStore(m,'fromBox')));
@@ -611,6 +644,7 @@ function home(){st={screen:'home'};stopTalk();const r=rankInfo(),m=missions(),al
    <span class="hrow"><button class="chg" data-a="btalk">🗣️ はなしかけて みる</button><button class="chg" data-a="chars">🧸 なかま</button></span></span><span class="lvchip">なかよし<br><b>Lv ${lvl()}</b></span></div>
   <button class="gobtn ${G.done?'done':''}" data-a="go"><span class="ic">${G.ic}</span><span><b>${esc(G.t)}</b><span>${esc(G.s)}</span></span><span class="arrow">▶</span></button>
   ${canSpeak()?'':'<div class="warn">🔇 この たんまつでは えいごの よみあげが つかえません。もじで とけるように して います。べつの ブラウザ(Chrome・Edge・Safari)で ひらくと こえが でます。</div>'}
+  <button class="wordbtn" data-a="wordhome"><span class="ic">🔤</span><span><b>たんご アプリ</b><span>${(save.wp[today()]||0)<WORD_MAX?`${WORD_N}もんで +${WORD_PTS}ポイント ・ ふりかえり テスト`:'ふりかえり テスト も あるよ'}</span></span></button>
   ${growCard()}
   ${save.gacha[today()]?'':'<button class="gachabtn" data-a="gacha"><span class="ic">🎰</span><span><b>きょうの シールくじ</b><span>1にち 1かい ひけるよ!</span></span></button>'}
   ${todayCard()}
@@ -648,8 +682,8 @@ function grade(){st={screen:'grade'};
 
 /* ----- もんだい ----- */
 function startRound(kind,custom,meta){const qs=custom||makeRound(kind);if(!qs.length){home();return}
-  st={screen:'quiz',kind,qs,base:qs.length,i:0,score:0,first:true,marks:[],lock:false,newMiss:0,conquered:0,ord:[],t0:Date.now(),mood:'normal',meta:meta||null,hinted:false,gained:{said:[],newW:[],mast:[]},
-    line:kind==='boss'?`${CHARS[AREAS[meta.a].boss].name}「えいごで こたえて!」`:meta&&meta.easy?'こんどは やさしく したよ。いっしょに きいてみよう!':kind==='recall'?stageLine():kind==='due'?'ふくしゅうの ひだよ。おぼえて いるかな?':kind==='course'?(meta&&meta.s===0?'きいて えらんでみよう!':meta&&meta.s===2?'かいわに ちょうせん!':stageLine()):kind==='daily'?'きょうの レッスン、スタート!':kind==='review'?'まえに まちがえた もんだいだよ。こんどは できるかな?':pick(CHARS[save.buddy].start)};
+  st={screen:'quiz',kind,qs,base:qs.filter(q=>q.type!=='intro').length,combo:0,i:0,score:0,first:true,marks:[],lock:false,newMiss:0,conquered:0,ord:[],t0:Date.now(),mood:'normal',meta:meta||null,hinted:false,gained:{said:[],newW:[],mast:[]},
+    line:kind==='words'?'えいごを きいて、おなじ え を えらんでね!':kind==='wtest'?'ふりかえり テスト! ヒントは なしだよ。おちついて えらんでね':kind==='boss'?`${CHARS[AREAS[meta.a].boss].name}「えいごで こたえて!」`:meta&&meta.easy?'こんどは やさしく したよ。いっしょに きいてみよう!':kind==='recall'?stageLine():kind==='due'?'ふくしゅうの ひだよ。おぼえて いるかな?':kind==='course'?(meta&&meta.s===0?'きいて えらんでみよう!':meta&&meta.s===2?'かいわに ちょうせん!':stageLine()):kind==='daily'?'きょうの レッスン、スタート!':kind==='review'?'まえに まちがえた もんだいだよ。こんどは できるかな?':pick(CHARS[save.buddy].start)};
   bgmSync();quiz()}
 function playQ(slow){const q=st.qs[st.i];if(!q)return;if((st.lock||st.revealed)&&q.after){sayEn(q.after,slow?.5:undefined);return}
   const arm=q.type==='speak'&&document.getElementById('saidbtn')&&document.getElementById('saidbtn').disabled?()=>lockBtn('saidbtn'):q.type==='recall'&&!st.revealed?()=>lockBtn('revealbtn','💡 こたえを きく'):null;
@@ -657,12 +691,12 @@ function playQ(slow){const q=st.qs[st.i];if(!q)return;if((st.lock||st.revealed)&
 function quiz(){const q=st.qs[st.i];st.ord=[];
   let prog='';for(let i=0;i<st.qs.length;i++)prog+=`<i class="${st.marks[i]||(i===st.i?'now':'')}"></i>`;
   const tag=q.retry?'🔁 さっきの もんだい':q.fromBox?'📝 にがて':q.fromSrs?'⏰ ふくしゅう':st.kind==='boss'?'⚔️ ボス':st.kind==='course'&&st.meta?`🗺️ ユニット${st.meta.u+1}`:st.kind==='daily'&&MODE[q.mode]?MODE[q.mode].ic+' '+MODE[q.mode].name:'';
-  $app.innerHTML=`<div class="quizhead"><button class="iconbtn" data-a="quit" aria-label="やめる">✕</button><div class="prog">${prog}</div><span class="chip">${st.i+1}/${st.qs.length}</span></div>
+  $app.innerHTML=`<div class="quizhead"><button class="iconbtn" data-a="quit" aria-label="やめる">✕</button><div class="prog">${prog}</div><span class="chip">${st.kind==='words'?`${Math.min(st.base,st.qs.slice(0,st.i+1).filter(x=>x.type!=='intro').length||1)}/${st.base}`:`${st.i+1}/${st.qs.length}`}</span>${st.kind==='words'?`<span class="chip combo" id="combo">🔥${st.combo||0}</span>`:''}</div>
   <div class="talk"><div class="ch" id="buddy">${bud(st.mood)}</div><div class="bubble" id="bubble">${esc(st.line)}</div></div>
-  <div class="q">${tag?`<span class="tag">${tag}</span>`:''}<span class="say">${q.type==='choice'||q.type==='order'?'<button class="iconbtn" data-a="hint" id="hintbtn" aria-label="ヒント">💡 ヒント</button>':''}<button class="iconbtn" data-a="say" aria-label="きく">🔊</button>${q.audio?'<button class="iconbtn" data-a="slow" aria-label="ゆっくり きく">🐢</button>':''}</span>
+  <div class="q">${tag?`<span class="tag">${tag}</span>`:''}<span class="say">${(q.type==='choice'||q.type==='order')&&!q.test?'<button class="iconbtn" data-a="hint" id="hintbtn" aria-label="ヒント">💡 ヒント</button>':''}<button class="iconbtn" data-a="say" aria-label="きく">🔊</button>${q.audio?'<button class="iconbtn" data-a="slow" aria-label="ゆっくり きく">🐢</button>':''}</span>
     ${q.html}<p class="ask">${esc(q.type==='order'&&q.join===' '?'ことばを ならべて えいごに しよう':q.ask)}</p></div>
   <div id="learn"></div>
-  ${q.type==='order'?'<div id="order"></div>':q.type==='speak'?speakBtns():q.type==='recall'?recallBtns(q)
+  ${q.type==='intro'?'<div class="row"><button class="pill sky" data-a="slow">🐢 ゆっくり</button><button class="pill pink" data-a="introok">おぼえた! つぎへ ▶</button></div><p class="note" style="text-align:center">きいて、まねして いってみよう</p>':q.type==='order'?'<div id="order"></div>':q.type==='speak'?speakBtns():q.type==='recall'?recallBtns(q)
    :`<div class="choices ${q.one?'one':''}">${q.choices.map(c=>`<button class="choice ${q.ctype||''}" data-a="ans" data-v="${esc(c)}">${q.choiceHTML?q.choiceHTML[c]:esc(c)}</button>`).join('')}</div>`}`;
   if(q.type==='order')renderOrder();
   window.scrollTo(0,0);
@@ -725,16 +759,17 @@ function record(q,ok){const s=save.stats[q.mode]||(save.stats[q.mode]={n:0,ok:0}
 function onCorrect(){const q=st.qs[st.i];st.lock=true;sfx.ok();st.marks[st.i]=st.first?'ok':'ng';
   if(!q.retry)record(q,st.first);
   if(st.first&&!q.retry&&q.type!=='recall')learn(q,q.type==='speak'?'said':st.hinted?'hint':'ok');
+  if(st.first&&!q.retry&&st.kind==='words'){st.combo=(st.combo||0)+1;st.maxCombo=Math.max(st.maxCombo||0,st.combo);const c=document.getElementById('combo');if(c)c.textContent='🔥'+st.combo;if(st.combo%5===0){popStar('🔥');setTimeout(()=>setBuddy('happy',st.combo+'れんぞく せいかい! すごい!','jump'),50)}}
   if(st.first){if(!q.retry){st.score++;if(hitMiss(q))st.conquered++;srsHit(q)}
     setBuddy('happy',pick(CHARS[save.buddy].ok),'jump');popStar('⭐');persist();
     if(q.type!=='speak'&&(q.audio||q.after))setTimeout(()=>sayEn(q.after||q.audio),150);
     setTimeout(next,q.mode==='hear'||q.mode==='order'?1700:1200)}
-  else{setBuddy('happy','そう! これで おぼえよう!','jump');const tries=(q.tries||0)+1,back=tries<=2;
+  else{setBuddy('happy','そう! これで おぼえよう!','jump');const tries=(q.tries||0)+1,back=tries<=2&&!q.test;
     if(back){const copy={...q,retry:true,tries};if(copy.type==='order')copy.chunks=shuffle(q.chunks);else if(copy.choices)copy.choices=shuffle(q.choices);st.qs.splice(Math.min(st.i+3,st.qs.length),0,copy)}
     document.getElementById('learn').innerHTML=`<div class="learn"><b>📝 おぼえよう!</b><div class="full">${esc(q.full)}${q.mark&&q.type==='order'?'':''}</div><p>${esc(q.explain||'')}</p>${back?'<span class="note">この もんだいは あとで もういちど でるよ</span>':''}
       <div class="row"><button class="pill sky" data-a="say">🔊 きく</button><button class="pill mint" data-a="next">わかった!</button></div></div>`;
     persist();if(q.audio||q.after)sayEn(q.after||q.audio);document.getElementById('learn').scrollIntoView({behavior:'smooth',block:'center'})}}
-function onWrong(){const q=st.qs[st.i];if(st.first&&!q.retry){addMiss(q);st.newMiss++;learn(q,'ng');persist()}st.first=false;st.wrongs=(st.wrongs||0)+1;sfx.ng();setBuddy('oops',pick(CHARS[save.buddy].ng),'shake');
+function onWrong(){const q=st.qs[st.i];st.combo=0;{const c=document.getElementById('combo');if(c)c.textContent='🔥0'}if(st.first&&!q.retry){addMiss(q);st.newMiss++;learn(q,'ng');persist()}st.first=false;st.wrongs=(st.wrongs||0)+1;sfx.ng();setBuddy('oops',pick(CHARS[save.buddy].ng),'shake');
   // ならべる もんだいで 2かい まちがえたら、こたえを みせて まねして ならべられるように する
   if(q.type==='order'&&st.wrongs>=2){const box=document.getElementById('learn');if(box&&!box.innerHTML)box.innerHTML=`<div class="learn"><b>💡 ヒント</b><div class="full" id="hintans">${esc(q.accepts[0]+(q.mark||''))}</div><p>${esc(q.explain||'')}</p><p class="note">この じゅんばんに ならべてみよう</p></div>`;if(q.audio)sayEn(q.audio,.6)}}
 function next(){if(st.screen!=='quiz')return;st.i++;st.first=true;st.lock=false;st.mood='normal';st.line=pick(['つぎも がんばろ!','つぎは これ!','よーし!','Next!','Let\'s go!']);st.wrongs=0;st.hinted=false;if(st.i>=st.qs.length)finish();else quiz()}
@@ -755,7 +790,8 @@ function missionPts(key,r){const P=save.mp[today()]||(save.mp[today()]={});
   const want=key==='course'?(r>=.8?10:r>=.6?7:0):key==='story'?(r>=1?5:3):(r>=.5?5:3),have=P[key]||0;
   if(want<=have)return {add:0,want,have,capped:false,reached:false,done:have>0};
   const aw=awardPts(want-have);P[key]=have+aw.add;return Object.assign(aw,{want,have:P[key],done:true})}
-function finish(){const kind=st.kind,sc=st.score,total=st.base,t=today();save.stars+=sc;let dailyFirst=false;
+function finish(){if(st.kind==='words'||st.kind==='wtest'){wordFinish();return}
+  const kind=st.kind,sc=st.score,total=st.base,t=today();save.stars+=sc;let dailyFirst=false;
   if(MODE[kind])save.best[kind]=Math.max(save.best[kind]||0,Math.round(sc/total*10));
   const r0=sc/total,mk=(kind==='course'||kind==='boss')?'course':'free',aw=missionPts(mk,(kind==='recall'||kind==='due')?1:r0);let allNow=false;
   if((kind==='course'||kind==='boss')?r0>=.6:true)allNow=missionHit([mk]);
@@ -788,6 +824,33 @@ function finish(){const kind=st.kind,sc=st.score,total=st.base,t=today();save.st
     <div class="row">${kind==='boss'?`<button class="pill pink" data-a="cnext">${r0>=.7?'つぎへ すすむ ▶':'もういちど ちょうせん'}</button><button class="pill sky" data-a="course">🗺️ ちず</button>`:kind==='course'?`<button class="pill pink" data-a="cnext">${r0>=.6&&save.cp<UNITS.length*3?'つぎへ すすむ ▶':'もういちど'}</button><button class="pill sky" data-a="course">🗺️ コースの ちず</button>`:kind==='review'&&!missCount()?'':`<button class="pill pink" data-a="start" data-k="${kind}">もういちど</button>`}<button class="pill mint" data-a="home">🏠 ホームへ</button></div></div>`;
   window.scrollTo(0,0);talk([[r>=.8?'Great job!':'Good job!','en',.85],[msg,'ja'],...gainSpeak()])}
 
+/* ----- たんご アプリの おわり ----- */
+function wordFinish(){const kind=st.kind,sc=st.score,total=st.base,t=today();save.stars+=sc;save.days[t]=(save.days[t]||0)+1;
+  let aw={add:0},note='';
+  if(kind==='words'){const n=save.wp[t]||0;if(n<WORD_MAX){save.wp[t]=n+1;aw=awardPts(WORD_PTS);note=aw.add?`たんご ${WORD_N}もん クリア! +${aw.add}ポイント(きょう あと ${WORD_MAX-n-1}かい)`:`きょうの じょうげん ${DAY_CAP}ポイントに なって いるよ`}else note=`たんごの ポイントは 1日 ${WORD_MAX}かいまで(⭐は もらえる)`}
+  const wrong=[],right=[];if(kind==='wtest'){st.qs.forEach((q,i)=>{if(q.type==='intro'||q.retry)return;(st.marks[i]==='ok'?right:wrong).push(q.item)});
+    save.tests.push({d:t,sc,n:total});save.tests=save.tests.slice(-30)}
+  const r=sc/total,medal=kind==='wtest'?(r>=.9?'🥇':r>=.7?'🥈':r>=.5?'🥉':'🎖️'):'';
+  persist();sfx.fan();confetti();
+  const msg=kind==='wtest'?(r>=.9?'テスト だいせいこう!':r>=.7?'よく おぼえて いるね!':'ふくしゅうで もっと つよく なれるよ!'):r>=.9?'たんご マスター!':r>=.7?'すごーい!':'さいごまで できたね!';
+  $app.innerHTML=topbar('home')+`<div class="result">
+    <div class="ch jump" style="width:140px">${bud('happy')}</div>
+    <h2>${medal} ${msg}</h2><div class="score">${sc}<small> / ${total}</small></div>
+    ${kind==='words'?`<div class="ptsbox"><span>もらえた ポイント</span><b>+${aw.add}</b><span class="sub">${esc(note)}</span></div><div class="chip">🔥 さいだい れんぞく ${st.maxCombo||0}</div>`:''}
+    ${gainHTML()}
+    ${kind==='wtest'?`<div class="panel tres"><h2>✅ おぼえて いた(${right.length})</h2><div class="kchips">${right.map(en=>`<button class="kchip" data-a="wsay2" data-k="${esc(en)}">${WBY[en].e} ${esc(en)}</button>`).join('')||'<span class="note">—</span>'}</div>
+      <h2>🔁 もういちど れんしゅう(${wrong.length})</h2><div class="kchips">${wrong.map(en=>`<button class="kchip" data-a="wsay2" data-k="${esc(en)}">${WBY[en].e} ${esc(en)} = ${esc(WBY[en].ja)}</button>`).join('')||'<span class="note">ぜんぶ おぼえて いたよ!</span>'}</div>
+      <p class="note">ことばを おすと よみあげるよ。まちがえた ことばは つぎの「たんご」や 復習で また でるよ</p></div>`:''}
+    <div class="row"><button class="pill pink" data-a="start" data-k="${kind}">もういちど</button><button class="pill sky" data-a="wordhome">🔤 たんご アプリ</button><button class="pill mint" data-a="home">🏠 ホーム</button></div></div>`;
+  window.scrollTo(0,0);talk([[r>=.7?'Great job!':'Good job!','en',.85],[msg,'ja'],...gainSpeak()])}
+function wordHome(){st={screen:'wordhome'};const t=today(),n=save.wp[t]||0,K=Object.entries(save.kn).filter(([id])=>id[0]==='w'),ms=K.filter(([,r])=>r.ms).length,last=save.tests.slice(-5).reverse();
+  $app.innerHTML=topbar('home')+`<h2 class="sec-title">🔤 たんご アプリ</h2>
+  <div class="talk"><div class="ch bob">${bud('happy')}</div><div class="bubble">えいごを みて、きいて、え を えらぼう! ${WORD_N}もんで ${WORD_PTS}ポイント もらえるよ</div></div>
+  <button class="gobtn" data-a="start" data-k="words"><span class="ic">🔤</span><span><b>たんご ${WORD_N}もん</b><span>${n<WORD_MAX?`おわると +${WORD_PTS}ポイント(きょう あと ${WORD_MAX-n}かい)`:'きょうの ポイントは おしまい。⭐は もらえるよ'}</span></span><span class="arrow">▶</span></button>
+  <button class="coursebtn" data-a="start" data-k="wtest" style="background:var(--lav-d)"><span class="ic">📝</span><span><b>ふりかえり テスト(${TEST_N}もん)</b><span>おぼえた ことばを ためそう。ヒント なし</span></span></button>
+  <div class="tiles"><div class="tile"><b>${K.length}</b><span>であった たんご</span></div><div class="tile"><b>${ms}</b><span>しっかり おぼえた</span></div><div class="tile"><b>${dueItems().filter(id=>id[0]==='w').length}</b><span>きょう ふくしゅう</span></div></div>
+  ${last.length?`<div class="panel"><h2>📝 テストの きろく</h2>${last.map(x=>`<div class="hbar"><span>${x.d.slice(5).replace('-','/')}</span><div class="meter"><i style="width:${Math.round(x.sc/x.n*100)}%"></i></div><span class="n">${x.sc}/${x.n}</span></div>`).join('')}</div>`:''}
+  <button class="smallbtn" data-a="dict">📒 たんご ずかん で みる</button>`;window.scrollTo(0,0);bgmSync()}
 /* ----- すすむコース ----- */
 const STEP=[['まなぶ','👂','ことばを きいて まねする'],['れんしゅう','✏️','クイズで たしかめる'],['はなそう','💬','かいわに ちょうせん']];
 const areaOf=i=>Math.floor(i/5);
@@ -994,7 +1057,7 @@ function parent(){const was=st.screen;st={screen:'parent'};if(!parentOK){gate();
    <div class="field"><span>きょうの ポイント ${save.pts[today()]||0} / ${DAY_CAP}${save.adj[today()]?`(てなおし ${save.adj[today()]>0?'+':''}${save.adj[today()]})`:''}</span><span class="row"><button class="gradechip" data-a="padj" data-k="-1">−1</button><button class="gradechip" data-a="padj" data-k="1">+1</button><button class="gradechip" data-a="padj" data-k="5">+5</button></span></div>
    <div class="dwrap"><table class="tbl"><thead><tr><th>しゅう(げつようび)</th><th>ポイント</th><th>おこづかい</th></tr></thead><tbody>${Array.from({length:6},(_,k)=>{const d=weekDays()[0];d.setDate(d.getDate()-7*k);let p=0;for(let j=0;j<7;j++){const x=new Date(d);x.setDate(d.getDate()+j);p+=save.pts[dkey(x)]||0}return `<tr><td>${d.getMonth()+1}/${d.getDate()}〜${k===0?'(こんしゅう)':''}</td><td class="n">${p}</td><td>${p>=WEEK_GOAL?`🎉 ${save.yen}えん`:k===0?'とちゅう':'0えん'}</td></tr>`}).join('')}</tbody></table></div>
    <p class="note">シールくじの でかた:ノーマル ${GACHA_RATE.N}%・レア ${GACHA_RATE.R}%・スーパーレア ${GACHA_RATE.SR}%(1日 1かい、おかねは かかりません)。⭐の のこり ${wallet()}(ぜんぶで ${save.stars}、おみせで つかった ${save.spent||0})。</p>
-   <p class="note">ポイントは 1日の ミッション 3つで 20(すすむコース 10・えほん 5・すきな メニュー 5)。5日 ぜんぶ やると ${WEEK_GOAL}に なります。とちゅうで やめた しゅうは 0えん。ミッションが おわった あとの べんきょうは ⭐(あそび用)に なります。</p></div>
+   <p class="note">たんご アプリは 20もんで 3ポイント(1日 2かいまで。1日の じょうげん 20は かわりません)。ポイントは 1日の ミッション 3つで 20(すすむコース 10・えほん 5・すきな メニュー 5)。5日 ぜんぶ やると ${WEEK_GOAL}に なります。とちゅうで やめた しゅうは 0えん。ミッションが おわった あとの べんきょうは ⭐(あそび用)に なります。</p></div>
   <div class="panel"><h2>🗺️ すすむコース</h2><p class="note">いま:ユニット ${uNow()+1}/${UNITS.length}「${UNITS[uNow()].t}」の「${STEP[save.cp%3][0]}」</p>
    ${sw('openAll','ぜんぶの ユニットを ひらく(英語が できる こ むけ)')}</div>
   <div class="panel"><h2>⚙️ せってい</h2>
@@ -1027,7 +1090,7 @@ document.addEventListener('click',e=>{const b=e.target.closest('[data-a]');if(!b
   const H={
    gacha(){gacha()},gpull(){gpull()},shop(){shop()},room(){room()},stab(){shopTab=k;shop()},sbuy(){sbuy(k)},suse(){suse(k)},
    poke(){const c=CHARS[k];if(c){sayJa(pick(c.ok));const el=b;el.classList.remove('jump');void el.offsetWidth;el.classList.add('jump')}},
-   hint(){useHint()},go(){go()},btalk(){btalk()},bans(){bans()},boss(){bossIntro(k)},bossgo(){startRound('boss',bossQs(+k),{a:+k})},
+   hint(){useHint()},introok(){if(st.screen==='quiz')next()},wordhome(){wordHome()},wsay2(){sayEn(k)},go(){go()},btalk(){btalk()},bans(){bans()},boss(){bossIntro(k)},bossgo(){startRound('boss',bossQs(+k),{a:+k})},
    reveal(){const q=st.qs[st.i];st.revealed=true;document.getElementById('reveal').hidden=false;document.getElementById('rv1').hidden=true;document.getElementById('rv2').hidden=false;sayEn(q.answer)},
    rcok(){if(st.lock)return;const q=st.qs[st.i];if(!st.first){onCorrect();return}if(!q.retry){rcMark(q,true);learn(q,'rok')}logSpeak();onCorrect();setBuddy('happy','じぶんで いえたね! すごい!','jump')},
    rcng(){if(st.lock)return;const q=st.qs[st.i];st.lock=true;

@@ -121,5 +121,26 @@ await p.close();
 p=await open({noVoice:true,time:new Date('2026-10-29T08:00:00+09:00')});
 await p.click('[data-a="go"]');await tick(p,300);const fin=await playAll(p,true);
 ok('音が でなくても 学習が とまらない',fin,p.__errs.join(' | '));
+await p.close();
+// ===== 9. たんご アプリ =====
+p=await open({time:new Date('2026-10-30T08:00:00+09:00')});
+ok('ホームに たんご アプリ',!!(await p.$('[data-a="wordhome"]')));
+await p.click('[data-a="wordhome"]');await tick(p,300);await p.click('[data-a="start"][data-k="words"]');await tick(p,400);
+let info=await p.evaluate(()=>{const s=window.__qa.st();return {base:s.base,n:s.qs.length,intro:s.qs.filter(q=>q.type==='intro').length,first:s.qs[0].mode,word:document.querySelector('.word.big')?document.querySelector('.word.big').textContent:''}});
+ok('たんご:20もん(NEW の しょうかいは べつ)',info.base===20,JSON.stringify(info));
+ok('たんご:えいごの もじを 大きく みせる',!!info.word);
+for(let n=0;n<60;n++){if(await p.$('.result'))break;if(await p.$('[data-a="introok"]')){await tick(p,800);await p.click('[data-a="introok"]');await tick(p,300);continue}await answer(p,true)}
+sv=await S(p);ok('たんご 20もん → +3ポイント',sv.pts['2026-10-30']===3,String(sv.pts['2026-10-30']));
+ok('たんご:れんぞく せいかいの 🔥 が でる',(await p.textContent('.result')).includes('れんぞく'));
+for(const [ki,want] of [[2,6],[3,6]]){await p.click('[data-a="start"][data-k="words"]');await tick(p,400);for(let n=0;n<60;n++){if(await p.$('.result'))break;if(await p.$('[data-a="introok"]')){await tick(p,800);await p.click('[data-a="introok"]');await tick(p,300);continue}await answer(p,true)}
+  sv=await S(p);ok(`たんご ${ki}かいめ:ポイントは 1日 2かいまで(合計 ${want})`,sv.pts['2026-10-30']===want,String(sv.pts['2026-10-30']))}
+await p.click('[data-a="wordhome"]');await tick(p,300);await p.click('[data-a="start"][data-k="wtest"]');await tick(p,400);
+const tinfo=await p.evaluate(()=>{const s=window.__qa.st();return {n:s.base,hint:!!document.getElementById('hintbtn')}});
+ok('テスト:10もん・ヒント なし',tinfo.n===10&&!tinfo.hint,JSON.stringify(tinfo));
+await playAll(p,n=>n%4!==0);sv=await S(p);
+ok('テスト:けっか が きろくされ、おぼえた/れんしゅう が でる',sv.tests.length===1&&(await p.textContent('.result')).includes('もういちど れんしゅう'),JSON.stringify(sv.tests));
+ok('テストでは ポイントが ふえない',sv.pts['2026-10-30']===6);
+await p.screenshot({path:OUT+'/9_test.png',fullPage:true});
+ok('ページエラー なし(たんご)',p.__errs.length===0,p.__errs.join(' | '));
 await p.close();await b.close();
 const ngs=results.filter(r=>r[0]==='NG');console.log(`\n${results.length}こ ちゅう OK ${results.length-ngs.length} / NG ${ngs.length}`);console.log('画像:',OUT);process.exit(ngs.length?1:0);
