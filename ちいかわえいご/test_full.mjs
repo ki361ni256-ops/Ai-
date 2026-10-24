@@ -123,12 +123,15 @@ await p.click('[data-a="go"]');await tick(p,300);const fin=await playAll(p,true)
 ok('音が でなくても 学習が とまらない',fin,p.__errs.join(' | '));
 await p.close();
 // ===== 9. たんご アプリ =====
+{const ctx2=await b.newContext({viewport:{width:400,height:860},timezoneId:'Asia/Tokyo'});const q0=await ctx2.newPage();await q0.goto('file://'+page_html+'#qa');await q0.click('.splash .go');await q0.click('[data-a="wordhome"]');await q0.click('[data-a="start"][data-k="wtest"]');
+  ok('テスト:であった ことばが すくない ときは あんない(しらない ことばを ださない)',(await q0.textContent('.bubble')).includes('まず')&&!(await q0.$('.choice')));await ctx2.close()}
 p=await open({time:new Date('2026-10-30T08:00:00+09:00')});
 ok('ホームに たんご アプリ',!!(await p.$('[data-a="wordhome"]')));
 await p.click('[data-a="wordhome"]');await tick(p,300);await p.click('[data-a="start"][data-k="words"]');await tick(p,400);
 let info=await p.evaluate(()=>{const s=window.__qa.st();return {base:s.base,n:s.qs.length,intro:s.qs.filter(q=>q.type==='intro').length,first:s.qs[0].mode,word:document.querySelector('.word.big')?document.querySelector('.word.big').textContent:''}});
 ok('たんご:20もん(NEW の しょうかいは べつ)',info.base===20,JSON.stringify(info));
 ok('たんご:えいごの もじを 大きく みせる',!!info.word);
+await p.setViewportSize({width:320,height:640});ok('たんご:320px で よこスクロール なし',await noHScroll(p));await p.setViewportSize({width:400,height:860});
 for(let n=0;n<60;n++){if(await p.$('.result'))break;if(await p.$('[data-a="introok"]')){await tick(p,800);await p.click('[data-a="introok"]');await tick(p,300);continue}await answer(p,true)}
 sv=await S(p);ok('たんご 20もん → +3ポイント',sv.pts['2026-10-30']===3,String(sv.pts['2026-10-30']));
 ok('たんご:れんぞく せいかいの 🔥 が でる',(await p.textContent('.result')).includes('れんぞく'));
