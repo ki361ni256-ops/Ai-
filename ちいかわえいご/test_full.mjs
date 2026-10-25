@@ -52,11 +52,13 @@ ok('まなぶ:「いえた!」は すぐには おせない',await p.$eval('#sai
 await tick(p,9000);ok('まなぶ:3びょう たつと おせる(数字は でない)',!(await p.$eval('#saidbtn',e=>e.disabled))&&!/\d/.test(await p.$eval('#saidbtn',e=>e.textContent)));
 ok('まなぶ→確認クイズ を 最後まで できる',await playAll(p,true));
 let sv=await S(p);ok('ミッション:コース 10ポイント(全問せいかい)',sv.pts['2026-10-26']===10,JSON.stringify(sv.mp));
+ok('1かいで 1ユニット クリア(つぎの ユニットへ)',sv.cp===3,'cp '+sv.cp);
 ok('ことばの きろくが できる(はじめて せいかい・つぎの 復習日)',Object.values(sv.kn).some(r=>r.fo==='2026-10-26'&&r.due==='2026-10-27'),Object.keys(sv.kn).length+'こ');
 ok('結果画面に「きょう できたこと」が でる',!!(await p.$('.gain')));
 await p.screenshot({path:OUT+'/1_result.png',fullPage:true});
 // ===== 2. まちがい・ヒント =====
 await p.click('[data-a="cnext"]');await tick(p,600);
+while(await p.$('#saidbtn[data-a="lnext"]')){await tick(p,9000);await p.click('#saidbtn');await tick(p,300)}
 const before=await S(p);
 await answer(p,false);sv=await S(p);const wasWrongQ=true;
 const ngItem=Object.entries(sv.kn).find(([k,r])=>r.ng>0);
@@ -70,7 +72,7 @@ await playAll(p,true);
 // ===== 3. 保存と さいきどう =====
 const kn1=Object.keys((await S(p)).kn).length,pts1=(await S(p)).pts['2026-10-26'];
 await p.reload();await p.clock.runFor(1500);await p.waitForTimeout(200);for(let i=0;i<10&&!(await p.$('.splash .go:not([disabled])'));i++)await tick(p,1000);await p.click('.splash .go');
-sv=await S(p);ok('さいきどう:進み・ポイント・きろくが のこる',Object.keys(sv.kn).length===kn1&&sv.pts['2026-10-26']===pts1&&sv.cp>=2,`kn ${kn1} pts ${pts1} cp ${sv.cp}`);
+sv=await S(p);ok('さいきどう:進み・ポイント・きろくが のこる',Object.keys(sv.kn).length===kn1&&sv.pts['2026-10-26']===pts1&&sv.cp>=3,`kn ${kn1} pts ${pts1} cp ${sv.cp}`);
 ok('アカウント保存にも のこる',!!store.meta&&store.meta.ids.length===1&&Object.keys(store['p_'+store.meta.ids[0]].kn||{}).length===kn1);
 // 端末の きろくが きえても アカウントから もどる
 const p2=await open({clearLocal:true});sv=await S(p2);ok('端末の きろくが きえても アカウントから もどる(あたらしい からっぽを つくらない)',Object.keys(sv.kn).length===kn1&&store.meta.ids.length===1);await p2.close();
