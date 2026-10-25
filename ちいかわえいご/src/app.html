@@ -437,7 +437,7 @@ const uNow=()=>Math.min(Math.floor(save.cp/3),UNITS.length-1);
 const talkKeys=()=>[...new Set(UNITS.slice(0,Math.max(3,uNow()+1)).map(u=>u.d))];
 function poolFor(mode){const b=bNow();
   if(mode==='talk')return talkKeys();
-  if(mode==='simon'){const open=new Set(UNITS.slice(0,Math.floor(save.cp/3)+1).flatMap(u=>u.w));return WORDS.filter(w=>w.e&&(w.b<=b||open.has(w.en))&&['body','color','animal','food','order','home','school','ride','nature'].includes(w.c)).map(w=>w.en)}
+  if(mode==='simon'){const open=new Set(UNITS.slice(0,Math.floor(save.cp/3)+1).flatMap(u=>u.w));const t=today(),all=WORDS.filter(w=>simonOK(w)&&(w.b<=b||open.has(w.en))).map(w=>w.en),fr=all.filter(en=>!save.kn['w:'+en]||save.kn['w:'+en].l!==t);return fr.length>=8?fr:all}
   if(mode==='recall'){const t=today(),seen0=WORDS.filter(w=>w.e&&(save.fok[w.en]||save.learned.includes(w.en))).map(w=>'w:'+w.en),fresh=seen0.filter(id=>!save.kn[id]||save.kn[id].l!==t),seen=fresh.length>=6?fresh:seen0;
     const base=seen.length>=4?seen:UNITS[0].w.concat(UNITS[1].w).map(en=>'w:'+en);return base.concat(talkKeys().map(k=>'d:'+k))}
   if(mode==='abc')return LET.map(l=>l.l);
@@ -463,7 +463,7 @@ function wordRound(){const pool=wordPool(),K=save.kn,has=new Set(),known=[],fres
   const newCap=known.length>=14?6:10;  // はじめての ことばは 1かいに 6〜10こまで
   const openW=UNITS.slice(0,Math.floor(save.cp/3)+1).flatMap(u=>u.w);
   [...shuffle(openW),...shuffle(pool.map(w=>w.en))].forEach(en=>{if(fresh.length<newCap&&!has.has(en)&&WBY[en]&&WBY[en].e&&!K['w:'+en]){has.add(en);fresh.push(en)}});
-  const fmt=en=>{const w=WBY[en],sim=['body','color','animal','food','order','home','school','ride','nature'].includes(w.c);return pick(bNow()===1?['see','see','listen',...(sim?['simon']:[])]:['see','listen','say','meaning',...(sim?['simon']:[])])};
+  const fmt=en=>{const w=WBY[en],sim=simonOK(w);return pick(bNow()===1?['see','see','listen',...(sim?['simon']:[])]:['see','listen','say','meaning',...(sim?['simon']:[])])};
   const kq=known.slice(0,Math.max(0,WORD_N-fresh.length*2)).map(en=>makeQ(fmt(en),en));
   // あたらしい ことば:しょうかい → 2もん あとで「みて えらぶ」→ さいごの ほうで「きいて えらぶ」
   const seq=[],later=[],pend=[];fresh.forEach(en=>{seq.push(makeQ('intro',en));seq.push(...kq.splice(0,2));if(pend.length)seq.push(pend.shift());pend.push(makeQ('see',en));later.push(makeQ('listen',en))});seq.push(...pend);
@@ -474,6 +474,10 @@ function testRound(){const K=save.kn,ids=Object.keys(K).filter(id=>id[0]==='w'&&
   const cand=ids.sort((a,b)=>(K[a].st-K[b].st)||(dNum(K[a].due)-dNum(K[b].due))).slice(0,16);if(cand.length<4)return [];  // であった ことばだけで だす
   const pickd=shuffle(cand).slice(0,TEST_N),b=bNow();
   return pickd.map((id,i)=>{const en=id.slice(2),m=b===1?(i%3===2?'tread':'listen'):pick(['listen','tread','say','meaning']);const q=makeQ(m,en);q.test=true;return q})}
+// きいて タッチ の えいご(ふくすうは are、tooth は teeth。てんき・きせつの ことばは つかわない)
+const SIMON_CATS=['body','color','animal','food','order','home','school','ride','nature'],SIMON_NATURE=['sun','moon','star','flower','tree','rainbow','cloud','sea','mountain','river'],PLURAL=['scissors','shoes','grapes','French fries','pants','socks','noodles'];
+const simonOK=w=>w&&w.e&&SIMON_CATS.includes(w.c)&&(w.c!=='nature'||SIMON_NATURE.includes(w.en));
+function simonCmd(w){const en=w.en==='tooth'?'teeth':w.en;if(w.c==='body')return `Touch your ${en}!`;if(w.c==='color')return `Touch the ${en} one!`;if(w.c==='animal')return `Point to the ${en}!`;if(w.c==='food'||w.c==='order')return `Find the ${en}!`;return PLURAL.includes(en)?`Where are the ${en}?`:`Where is the ${en}?`}
 function makeQ(mode,item,sub){
   const key=mode+':'+item+(sub?':'+sub:'');
   if(mode==='abc'){const L=LET.find(x=>x.l===item);sub=sub||(bNow()===1&&Math.random()<.5?'case':Math.random()<.6?'first':'case');
@@ -502,8 +506,8 @@ function makeQ(mode,item,sub){
   if(mode==='intro')return {mode,item,key:'intro:'+item,type:'intro',ask:'あたらしい ことば!',html:`<div class="newtag">NEW!</div><div class="emoji">${w.e}</div><div class="word big">${esc(w.en)}</div><div class="ja">${esc(w.ja)}</div>`,audio:w.en,full:'',explain:''};
   if(mode==='see'||mode==='tread'){const ch=shuffle([w,...distract(w,nCh()-1,'e')]);
     return {mode,item,key,type:'choice',ctype:'cpic',ask:mode==='see'?'この えいごは どれ?':'もじを よんで えらんでね(おとは なし)',html:`<div class="word big">${esc(w.en)}</div>`,audio:mode==='see'?w.en:null,after:w.en,answer:w.en,choices:ch.map(x=>x.en),choiceHTML:Object.fromEntries(ch.map(x=>[x.en,x.e])),full:`${w.e} ${w.en}`,explain:`「${w.en}」は「${w.ja}」だよ。`}}
-  if(mode==='simon'){const cmd=w.c==='body'?`Touch your ${w.en}!`:w.c==='color'?`Touch the ${w.en} one!`:w.c==='animal'?`Point to the ${w.en}!`:(w.c==='food'||w.c==='order')?`Find the ${w.en}!`:`Where is the ${w.en}?`;
-    const ch=shuffle([w,...distract(w,nCh()-1,'e')]);return {mode,item,key,type:'choice',ctype:'cpic',ask:'えいごの めいれいを きいて タッチ!',html:`<button class="bigsay" data-a="say" aria-label="もういちど きく">🔊</button><div class="sent en" style="font-size:22px">${canSpeak()&&bNow()===1?'':esc(cmd)}</div>`,audio:cmd,after:cmd,answer:w.en,choices:ch.map(x=>x.en),choiceHTML:Object.fromEntries(ch.map(x=>[x.en,x.e])),full:`${cmd} → ${w.e}`,explain:`「${w.en}」は「${w.ja}」。`}}
+  if(mode==='simon'){const cmd=simonCmd(w);
+    const ch=shuffle([w,...distract(w,nCh()-1,'e')]);return {mode,item,key,type:'choice',ctype:'cpic',ask:'えいごを きいて、その え を タッチ!',html:`<button class="bigsay" data-a="say" aria-label="もういちど きく">🔊</button><div class="sent en" style="font-size:22px">${canSpeak()&&bNow()===1?'':esc(cmd)}</div>`,audio:cmd,after:cmd,answer:w.en,choices:ch.map(x=>x.en),choiceHTML:Object.fromEntries(ch.map(x=>[x.en,x.e])),full:`${cmd} → ${w.e}`,explain:`「${w.en}」は「${w.ja}」。`}}
   if(mode==='listen'){const ch=shuffle([w,...distract(w,nCh()-1,'e')]);
     return {mode,item,key,type:'choice',ctype:'cpic',ask:'きこえた ものは どれ?',html:`<button class="bigsay" data-a="say" aria-label="もういちど きく">🔊</button>${canSpeak()?'':`<div class="word">${esc(w.en)}</div><p class="note">おとが でないので もじで みてね</p>`}`,audio:w.en,answer:w.en,choices:ch.map(x=>x.en),choiceHTML:Object.fromEntries(ch.map(x=>[x.en,x.e])),full:`${w.e} ${w.en}`,explain:`「${w.en}」は「${w.ja}」だよ。`}}
   if(mode==='say'){const ch=shuffle([w,...distract(w,nCh()-1)]);
