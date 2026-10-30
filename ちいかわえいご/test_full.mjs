@@ -52,7 +52,7 @@ ok('まなぶ:「いえた!」は すぐには おせない',await p.$eval('#sai
 await tick(p,9000);ok('まなぶ:3びょう たつと おせる(数字は でない)',!(await p.$eval('#saidbtn',e=>e.disabled))&&!/\d/.test(await p.$eval('#saidbtn',e=>e.textContent)));
 ok('まなぶ→確認クイズ を 最後まで できる',await playAll(p,true));
 let sv=await S(p);ok('ミッション:コース 10ポイント(全問せいかい)',sv.pts['2026-10-26']===10,JSON.stringify(sv.mp));
-ok('1かいで 1ユニット クリア(つぎの ユニットへ)',sv.cp===3,'cp '+sv.cp);
+ok('1かいめで ユニットの はんぶん クリア(あたらしい ことばは 2〜4こ)',sv.cp===1&&Object.keys(sv.kn).filter(k=>k.startsWith('w:')).length<=4,'cp '+sv.cp+' w '+Object.keys(sv.kn).filter(k=>k.startsWith('w:')).length);
 ok('ことばの きろくが できる(はじめて せいかい・つぎの 復習日)',Object.values(sv.kn).some(r=>r.fo==='2026-10-26'&&r.due==='2026-10-27'),Object.keys(sv.kn).length+'こ');
 ok('結果画面に「きょう できたこと」が でる',!!(await p.$('.gain')));
 await p.screenshot({path:OUT+'/1_result.png',fullPage:true});
@@ -69,6 +69,7 @@ await answer(p,true);
 let used=false;for(let n=0;n<12&&!used;n++){const t=await p.evaluate(()=>{const s=window.__qa.st(),q=s.qs&&s.qs[s.i];return q&&q.type});const rt=await p.evaluate(()=>{const s=window.__qa.st();return !!(s.qs[s.i]&&s.qs[s.i].retry)});if(t==='choice'&&!rt&&await p.$('#hintbtn:not([disabled])')){await p.click('#hintbtn');used=true;const left=await p.$$eval('.choice:not([disabled])',e=>e.length);ok('ヒント:えらぶ ものが 2つ いかに なる',left<=2,left+'こ');const hi=await p.evaluate(()=>{const s=window.__qa.st(),q=s.qs[s.i];return {hinted:s.hinted,first:s.first,mode:q.mode,item:q.item,retry:!!q.retry}});console.log('   hint q:',JSON.stringify(hi));await answer(p,true)}else await answer(p,true)}
 sv=await S(p);ok('ヒント:ヒントあり せいかいは べつに きろく',Object.values(sv.kn).some(r=>r.h>0));
 await playAll(p,true);
+ok('2かいめ(のこり はんぶん)で 1ユニット クリア',(await S(p)).cp===3,'cp '+(await S(p)).cp);
 // ===== 3. 保存と さいきどう =====
 const kn1=Object.keys((await S(p)).kn).length,pts1=(await S(p)).pts['2026-10-26'];
 await p.reload();await p.clock.runFor(1500);await p.waitForTimeout(200);for(let i=0;i<10&&!(await p.$('.splash .go:not([disabled])'));i++)await tick(p,1000);await p.click('.splash .go');

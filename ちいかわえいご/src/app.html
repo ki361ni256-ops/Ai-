@@ -232,6 +232,7 @@ body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset
 .wordbtn{background:var(--yellow);border-radius:24px;padding:14px 18px;display:flex;align-items:center;gap:14px;text-align:left;box-shadow:0 6px 0 var(--yellow-d)}
 .wordbtn:active{transform:translateY(4px);box-shadow:0 2px 0 var(--yellow-d)}.wordbtn .ic{font-size:38px}.wordbtn b{display:block;font-size:22px}.wordbtn span span{font-size:14px}
 .tres{align-self:stretch;text-align:left}.tres h2{font-size:17px}
+.homemis{border-color:var(--sky-d)}.homemis.done{border-color:var(--mint-d)}
 @media (prefers-reduced-motion:reduce){.bob,.jump,.shake,.pop{animation:none}.confetti{display:none}}
 @media (max-width:440px){.q .tag{position:static;max-width:100%;margin-top:-4px}}
 @media (max-width:380px){.words{grid-template-columns:repeat(2,1fr)}.gradegrid{grid-template-columns:repeat(3,1fr)}.tiles{grid-template-columns:repeat(2,1fr)}}
@@ -264,7 +265,7 @@ const DAY_CAP=20,WEEK_GOAL=100,ROUND_N=8,DAILY_N=10,WD=['げつ','か','すい',
 
 /* ---------- ほぞん(この 端末 + claude.ai アカウント) ---------- */
 const KEY='chiikawa-eigo-v1';
-const newSave=id=>({id,name:'',grade:1,buddy:'chiikawa',stars:0,pts:{},days:{},att:{},stats:{},best:{},miss:{},srs:{},stickers:[],learned:[],read:{},mis:{},log:{},weeks:{},mp:{},cp:0,yen:100,voice:'us',openAll:false,adj:{},spent:0,acc:'',owned:{acc:[],friend:[],room:[]},roomOn:[],gacha:{},stk:{},rc:{},fok:{},ucl:{},voiceName:'',kn:{},adapt:{},boss:{},wp:{},tests:[],blv:1,lastDay:'',sound:true,theme:true,autoRead:true,rate:.8,upd:0});
+const newSave=id=>({id,name:'',grade:1,buddy:'chiikawa',stars:0,pts:{},days:{},att:{},stats:{},best:{},miss:{},srs:{},stickers:[],learned:[],read:{},mis:{},log:{},weeks:{},mp:{},cp:0,yen:100,voice:'us',openAll:false,adj:{},spent:0,acc:'',owned:{acc:[],friend:[],room:[]},roomOn:[],gacha:{},stk:{},rc:{},fok:{},ucl:{},voiceName:'',kn:{},adapt:{},boss:{},wp:{},tests:[],homeMis:{},resume:null,diary:[],chat:{},blv:1,lastDay:'',sound:true,theme:true,autoRead:true,rate:.8,upd:0});
 const pid=()=>'p'+Date.now().toString(36)+Math.random().toString(36).slice(2,6);
 function readJSON(k){try{const r=localStorage.getItem(k);return r?JSON.parse(r):null}catch(e){return null}}
 let root=readJSON(KEY);
@@ -460,14 +461,19 @@ function wordRound(){const pool=wordPool(),K=save.kn,has=new Set(),known=[],fres
   // きょう もう やった ことばは うしろに。つよさが ひくい ものを さきに
   dueItems().filter(id=>id[0]==='w'&&K[id].l!==t).forEach(id=>addK(id.slice(2)));
   pool.filter(w=>K['w:'+w.en]).sort((a,b)=>((K['w:'+a.en].l===t)-(K['w:'+b.en].l===t))||(K['w:'+a.en].st-K['w:'+b.en].st)||Math.random()-.5).forEach(w=>addK(w.en));
-  const newCap=known.length>=14?6:10;  // はじめての ことばは 1かいに 6〜10こまで
+  const firstToday=Object.entries(K).filter(([id,r])=>id[0]==='w'&&r.f===t).length;
+  const newCap=Math.max(known.length<6?2:0,Math.min(3,4-firstToday));  // 1日の あたらしい ことばは コースと あわせて 4こ くらいまで
   const openW=UNITS.slice(0,Math.floor(save.cp/3)+1).flatMap(u=>u.w);
   [...shuffle(openW),...shuffle(pool.map(w=>w.en))].forEach(en=>{if(fresh.length<newCap&&!has.has(en)&&WBY[en]&&WBY[en].e&&!K['w:'+en]){has.add(en);fresh.push(en)}});
   const fmt=en=>{const w=WBY[en],sim=simonOK(w);return pick(bNow()===1?['see','see','listen',...(sim?['simon']:[])]:['see','listen','say','meaning',...(sim?['simon']:[])])};
   const kq=known.slice(0,Math.max(0,WORD_N-fresh.length*2)).map(en=>makeQ(fmt(en),en));
   // あたらしい ことば:しょうかい → 2もん あとで「みて えらぶ」→ さいごの ほうで「きいて えらぶ」
   const seq=[],later=[],pend=[];fresh.forEach(en=>{seq.push(makeQ('intro',en));seq.push(...kq.splice(0,2));if(pend.length)seq.push(pend.shift());pend.push(makeQ('see',en));later.push(makeQ('listen',en))});seq.push(...pend);
-  const tail=shuffle([...kq,...later]);let qs=[...seq,...tail],n=0;qs=qs.filter(q=>q.type==='intro'||++n<=WORD_N);
+  // たりない ときは、しっている ことばを べつの 形式で もう1かい/あたらしい ことばを きいて タッチで
+  let extra=[];const cnt=()=>seq.filter(q=>q.type!=='intro').length+kq.length+later.length+extra.length;
+  for(const en of shuffle(known)){if(cnt()>=WORD_N)break;extra.push(makeQ(pick(['listen','see']),en))}
+  for(const en of fresh){if(cnt()>=WORD_N)break;if(simonOK(WBY[en]))extra.push(makeQ('simon',en))}
+  const tail=shuffle([...kq,...later,...extra]);let qs=[...seq,...tail],n=0;qs=qs.filter(q=>q.type==='intro'||++n<=WORD_N);
   return qs.filter((q,i)=>q.type!=='intro'||qs.slice(i+1).some(x=>x.type!=='intro'&&x.item===q.item))}
 // ふりかえり テスト:であった ことばから 10もん(よわい・わすれそうな ものを さきに)。ヒント なし
 function testRound(){const K=save.kn,ids=Object.keys(K).filter(id=>id[0]==='w'&&WBY[id.slice(2)]&&WBY[id.slice(2)].e);
@@ -544,9 +550,13 @@ function learn(q,res){if(!q||q.mode==='speak'&&res!=='said')return;const id=item
     if(!r.fo){r.fo=t;if(g&&id[0]==='w')g.newW.push(itemLabel2(id))}r.lo=t;
     if(r.sd!==t){r.st=Math.min(6,r.st+1);r.sd=t}
     let iv=IV[r.st];if(r.ng>r.ok)iv=Math.max(1,Math.floor(iv/2));r.due=dPlus(iv);
-    const ms=r.st>=3&&Object.keys(r.fm).length>=2&&r.fo&&(dNum(t)-dNum(r.fo))>=2*864e5;
+    // 「しっかり おぼえた」には、こたえを きく まえに じぶんで いえた ことを ひっすに する(いえる もの だけ)
+    const canRecall=id[0]==='d'||(id[0]==='w'&&WBY[id.slice(2)]&&WBY[id.slice(2)].e);
+    const ms=r.st>=3&&Object.keys(r.fm).length>=2&&r.fo&&(dNum(t)-dNum(r.fo))>=2*864e5&&(!canRecall||r.ind>=1);
     if(ms&&!r.ms){r.ms=t;if(g)g.mast.push(itemLabel2(id))}}
   else if(res==='hint'){r.h++;r.due=dPlus(1)}
+  else if(res==='rhint'){r.h++;r.ok++;r.fm[q.mode]=(r.fm[q.mode]||0)+1;r.due=dPlus(1)}
+  else if(res==='mimic'){r.mim=(r.mim||0)+1;r.due=dPlus(1)}
   else if(res==='ng'){r.ng++;r.wd=t;r.st=Math.max(0,r.st-2);r.due=dPlus(1);if(r.ms)r.ms=''}}
 // ふるい きろく(メニューごとの 復習・はじめての せいかい)を あたらしい きろくへ うつす(1回だけ)
 function migrateKn(){if(save.knv)return;const K=save.kn||(save.kn={}),t=today();
@@ -616,7 +626,7 @@ function missions(){const t=today(),M=save.mis;if(!M[t]||!M[t].l.includes('cours
   return M[t]}
 function missionHit(keys){const m=missions(),was=m.d.length>=m.l.length;keys.forEach(k=>{if(m.l.includes(k)&&!m.d.includes(k))m.d.push(k)});return !was&&m.d.length>=m.l.length}
 function todayCard(){const m=missions(),n=m.d.length,all=n>=m.l.length;
-  const P=save.mp[today()]||{},info=k=>{if(k==='course'){const bp=bossPending();if(bp!=null)return {ic:'⚔️',t:'ボスに ちょうせん',s:`${AREAS[bp].t}の ボス ・ 10ポイント`,a:'data-a="cnext"'};const u=uNow(),sx=save.cp%3;return {ic:'🗺️',t:'すすむコース',s:`${save.cp>=UNITS.length*3?'ふくしゅう':`ユニット${u+1}「${UNITS[u].t}」`} ・ 10ポイント`,a:'data-a="cnext"'}}
+  const P=save.mp[today()]||{},info=k=>{if(k==='course'){const bp=bossPending();if(bp!=null)return {ic:'⚔️',t:'ボスに ちょうせん',s:`${AREAS[bp].t}の ボス ・ 10ポイント`,a:'data-a="cnext"'};const u=uNow(),sx=save.cp%3;return {ic:'🗺️',t:'すすむコース',s:`${save.cp>=UNITS.length*3?'ふくしゅう':`ユニット${u+1}「${UNITS[u].t}」${save.cp%3>=1?'の のこり':'の はじめ'}`} ・ 10ポイント`,a:'data-a="cnext"'}}
     if(k==='story')return {ic:'📖',t:'えほんを 1さつ',s:'よんで クイズに こたえる ・ 5ポイント',a:'data-a="stories"'};
     const mc=missCount(),due=dueCount();
     if(mc)return {ic:'📝',t:'にがて ふくしゅう',s:`まえに まちがえた ${mc}もん ・ 5ポイント(ほかの メニューでも OK)`,a:'data-a="start" data-k="review"'};
@@ -639,7 +649,7 @@ function nextMission(){const m=missions(),left=m.l.filter(k=>!m.d.includes(k));i
 function nextStory(){const maxLv=bNow()===1?1:bNow()===2?2:3;return STORIES.find(x=>x.lv<=maxLv&&!save.read[x.id])||pick(STORIES.filter(x=>x.lv<=maxLv))}
 function freePick(){return missCount()?'review':dueCount()?'due':'recall'}
 function goInfo(){const k=nextMission();
-  if(k==='course'){const b=bossPending();if(b!=null)return {ic:'⚔️',t:'きょうの えいご',s:`${AREAS[b].t}の ボスに ちょうせん!`};const u=uNow();return {ic:'▶️',t:'きょうの えいご',s:save.cp>=UNITS.length*3?'コースの ふくしゅう':`ユニット${u+1}「${UNITS[u].t}」(${UNITS[u].w.length}この ことばと かいわ)`}}
+  if(k==='course'){const b=bossPending();if(b!=null)return {ic:'⚔️',t:'きょうの えいご',s:`${AREAS[b].t}の ボスに ちょうせん!`};const u=uNow();const h=save.cp%3>=1?1:0;return {ic:'▶️',t:resumeOK(u,h)?'つづきから':'きょうの えいご',s:save.cp>=UNITS.length*3?'コースの ふくしゅう':`ユニット${u+1}「${UNITS[u].t}」${h?'の のこり(かいわ つき)':'の はじめ'} ・ あたらしい ことば ${halfW(u,h).length}こ`}}
   if(k==='story'){const x=nextStory();return {ic:'📖',t:'つぎは えほん',s:`「${x.title}」を よもう`}}
   if(k==='free'){const f=freePick();return {ic:f==='recall'?'💭':'⏰',t:lastStudyGap()>=2?'まずは ふくしゅう':'さいごは ふくしゅう',s:f==='review'?'まえに まちがえた もんだい':f==='due'?'わすれそうな ことばを おもいだそう':'じぶんで いってみよう'}}
   return {ic:'⭐',t:'もっと やる?',s:'きょうの ポイントは おしまい。⭐が もらえるよ',done:true}}
@@ -655,6 +665,7 @@ function home(){st={screen:'home'};stopTalk();const r=rankInfo(),m=missions(),al
   <button class="gobtn ${G.done?'done':''}" data-a="go"><span class="ic">${G.ic}</span><span><b>${esc(G.t)}</b><span>${esc(G.s)}</span></span><span class="arrow">▶</span></button>
   ${canSpeak()?'':'<div class="warn">🔇 この たんまつでは えいごの よみあげが つかえません。もじで とけるように して います。べつの ブラウザ(Chrome・Edge・Safari)で ひらくと こえが でます。</div>'}
   <button class="wordbtn" data-a="wordhome"><span class="ic">🔤</span><span><b>たんご アプリ</b><span>${(save.wp[today()]||0)<WORD_MAX?`${WORD_N}もんで +${WORD_PTS}ポイント ・ ふりかえり テスト`:'ふりかえり テスト も あるよ'}</span></span></button>
+  ${homeMisCard()}
   ${growCard()}
   ${save.gacha[today()]?'':'<button class="gachabtn" data-a="gacha"><span class="ic">🎰</span><span><b>きょうの シールくじ</b><span>1にち 1かい ひけるよ!</span></span></button>'}
   ${todayCard()}
@@ -676,6 +687,9 @@ function home(){st={screen:'home'};stopTalk();const r=rankInfo(),m=missions(),al
   <div class="logo small"><div><button class="gradechip" data-a="grade">🎒 ${GN[gNow()]} ▾</button>${Object.keys(root.profiles).length>1||save.name?`<button class="namechip" data-a="who">👤 ${esc(pName(save))}</button>`:''}</div></div>
   <button class="iconbtn parentbtn" data-a="parent">👪 おうちの ひとへ(きろく・せってい)</button>`;
   window.scrollTo(0,0);bgmSync()}
+// おうちミッション:ならった かいわで、おうちの ひとに 英語で はなしかけて みる(1日 1かい ⭐+2)
+function homeMisD(){const ks=Object.keys(DIALOGS).filter(k=>save.kn['d:'+k]);const n=new Date().getDate();return ks.length?DIALOGS[ks[n%ks.length]]:DIALOGS.greet}
+function homeMisCard(){const D=homeMisD(),done=save.homeMis[today()];return `<div class="panel homemis ${done?'done':''}"><h2>🏠 おうちミッション</h2>${done?'<p class="sub">✅ きょうは できたよ! おうちの ひとと えいごで はなせたね</p>':`<p class="sub">おうちの ひとに えいごで きいてみよう!</p><p class="en" style="margin:0;font-size:22px">${esc(D.q)}</p><div class="row" style="justify-content:flex-start"><button class="pill sky" data-a="hmsay">🔊 きく</button><button class="pill mint" data-a="hmdone">🗣️ きけたよ!</button></div>`}</div>`}
 // なかまが ならった 英語で はなしかけて くる(ひらいた ユニットの かいわ から)
 let btalkD=null;
 function btalk(){const known=Object.keys(DIALOGS).filter(k=>save.kn['d:'+k]),k=pick(known.length?known:['greet']);btalkD=DIALOGS[k];const el=document.getElementById('hsay');
@@ -734,9 +748,12 @@ function recSay(target,ok){const b=document.getElementById('recbtn'),h=document.
       if(alts.some(a=>sameish(a,target))){logSpeak();ok()}else{setBuddy('oops','おしい! もういちど いってみよう','shake');sayEn(target,.7)}};
     r.onerror=()=>{if(h)h.textContent='マイクが つかえないので、いえたら「いえた!」を おしてね';reset()};r.onend=reset;r.start()}
   catch(e){if(h)h.textContent='マイクが つかえないので、いえたら「いえた!」を おしてね';reset()}}
-const recallBtns=q=>`<div class="learn" id="reveal" hidden><b>💡 こたえ</b><div class="full">${esc(q.answer)}</div><p>${esc(q.answerJa||'')}</p></div>
-  <div class="row" id="rv1"><button class="pill sky" id="revealbtn" data-a="reveal" disabled>🤔 かんがえてね</button></div>
-  <div class="row" id="rv2" hidden><button class="pill mint" data-a="rcok">😊 じぶんで いえた!</button><button class="pill" data-a="rcng" style="background:var(--paper);border:3px solid var(--line)">🙂 まだ いえなかった</button></div>
+// こたえの ヒント(ことばは はじめの もじ、ぶんは はじめの ことば)
+const rcHint=a=>/\s/.test(a.trim())?a.split(' ')[0]+' …':a[0]+' '+a.slice(1).replace(/[A-Za-z]/g,'_ ').trim();
+const recallBtns=q=>`<div class="learn" id="rhintbox" hidden><b>💡 ヒント</b><div class="full">${esc(rcHint(q.answer))}</div></div>
+  <div class="learn" id="reveal" hidden><b>👂 こたえ</b><div class="full">${esc(q.answer)}</div><p>${esc(q.answerJa||'')}</p></div>
+  <div class="row" id="rv1"><button class="pill yellow" id="rhintbtn" data-a="rhint">💡 ヒント</button><button class="pill sky" id="revealbtn" data-a="reveal" disabled>🤔 かんがえてね</button></div>
+  <div class="row" id="rv2" hidden><button class="pill mint" data-a="rcok" id="rcokbtn">😊 じぶんで いえた!</button><button class="pill sky" data-a="rmimic">🦜 きいて まねした</button><button class="pill" data-a="rcng" style="background:var(--paper);border:3px solid var(--line)">🙂 まだ</button></div>
   <p class="note" style="text-align:center">こたえを きく まえに、こえに だして いってみよう</p>`;
 function rcMark(q,ok){const R=save.rc[q.key]||(save.rc[q.key]={n:0,ok:0,d1:'',d2:''});R.n++;if(ok){R.ok++;if(!R.d1)R.d1=today();R.d2=today()}}
 const rcStats=()=>{const v=Object.values(save.rc);return {said:v.filter(r=>r.ok>0).length,later:v.filter(r=>r.d1&&r.d2&&r.d2!==r.d1).length}};
@@ -749,8 +766,8 @@ function logSpeak(){const l=save.log[today()]||(save.log[today()]={q:0,ok:0});l.
 const speakBtns=()=>`<div class="row">${SRc?'<button class="pill mint" id="recbtn" data-a="rec">🎤 はなす</button>':''}<button class="pill ${SRc?'':'mint'}" id="saidbtn" data-a="said" data-label="${SRc?'いえた!':'🎤 いえた!'}" disabled>👂 きいてね</button></div><p class="note" id="heard" style="text-align:center">${SRc?'「はなす」を おして えいごで いってね':'こえに だして いえたら「いえた!」を おしてね'}</p>`;
 // お手本を きいて 3びょう たつと ボタンが おせる(かぞえる ひょうじは しない。ボタン れんだを ふせぐ)
 let lockT=null;
-function lockBtn(id,label){clearTimeout(lockT);const b=document.getElementById(id);if(!b)return;b.disabled=true;b.textContent=id==='revealbtn'?'🤔 かんがえてね':'🗣️ いってみてね';
-  lockT=setTimeout(()=>{const x=document.getElementById(id);if(x){x.disabled=false;x.textContent=label||x.dataset.label}},3000)}
+function lockBtn(id,label,ms){clearTimeout(lockT);const b=document.getElementById(id);if(!b)return;b.disabled=true;b.textContent=id==='revealbtn'?'🤔 かんがえてね':'🗣️ いってみてね';
+  lockT=setTimeout(()=>{const x=document.getElementById(id);if(x){x.disabled=false;x.textContent=label||x.dataset.label}},ms||(id==='revealbtn'?4000:3000))}
 // ヒント:ゆっくり よみあげて、えらぶ ものを 2つに へらす(ならべる もんだいは こたえを うすく みせる)。ヒントを つかった ことは おうちの ひと画面だけで わかる
 function useHint(){const q=st.qs[st.i];if(!q||st.lock||st.hinted)return;st.hinted=true;const hb=document.getElementById('hintbtn');if(hb)hb.disabled=true;
   if(q.type==='order'){const box=document.getElementById('learn');if(box&&!box.innerHTML)box.innerHTML=`<div class="learn"><b>💡 ヒント</b><div class="full" id="hintans">${esc(q.accepts[0]+(q.mark||''))}</div><p class="note">この じゅんばんに ならべてみよう</p></div>`}
@@ -782,7 +799,7 @@ function onCorrect(){const q=st.qs[st.i];st.lock=true;sfx.ok();st.marks[st.i]=st
 function onWrong(){const q=st.qs[st.i];st.combo=0;{const c=document.getElementById('combo');if(c)c.textContent='🔥0'}if(st.first&&!q.retry){addMiss(q);st.newMiss++;learn(q,'ng');persist()}st.first=false;st.wrongs=(st.wrongs||0)+1;sfx.ng();setBuddy('oops',pick(CHARS[save.buddy].ng),'shake');
   // ならべる もんだいで 2かい まちがえたら、こたえを みせて まねして ならべられるように する
   if(q.type==='order'&&st.wrongs>=2){const box=document.getElementById('learn');if(box&&!box.innerHTML)box.innerHTML=`<div class="learn"><b>💡 ヒント</b><div class="full" id="hintans">${esc(q.accepts[0]+(q.mark||''))}</div><p>${esc(q.explain||'')}</p><p class="note">この じゅんばんに ならべてみよう</p></div>`;if(q.audio)sayEn(q.audio,.6)}}
-function next(){if(st.screen!=='quiz')return;st.i++;st.first=true;st.lock=false;st.mood='normal';st.line=pick(['つぎも がんばろ!','つぎは これ!','よーし!','Next!','Let\'s go!']);st.wrongs=0;st.hinted=false;if(st.i>=st.qs.length)finish();else quiz()}
+function next(){if(st.screen!=='quiz')return;st.i++;st.first=true;st.lock=false;st.mood='normal';st.line=pick(['つぎも がんばろ!','つぎは これ!','よーし!','Next!','Let\'s go!']);st.wrongs=0;st.hinted=false;st.rhinted=false;if(st.i>=st.qs.length)finish();else quiz()}
 
 // きょう なにが できたかを ことばで つたえる(「すごい」だけで おわらせない)
 function gainHTML(){const g=st.gained||{said:[],newW:[],mast:[]},it=[];
@@ -800,15 +817,17 @@ function missionPts(key,r){const P=save.mp[today()]||(save.mp[today()]={});
   const want=key==='course'?(r>=.8?10:r>=.6?7:0):key==='story'?(r>=1?5:3):(r>=.5?5:3),have=P[key]||0;
   if(want<=have)return {add:0,want,have,capped:false,reached:false,done:have>0};
   const aw=awardPts(want-have);P[key]=have+aw.add;return Object.assign(aw,{want,have:P[key],done:true})}
-function finish(){if(st.kind==='words'||st.kind==='wtest'){wordFinish();return}
+function logSession(){try{const l=save.log[today()]||(save.log[today()]={q:0,ok:0});(l.ss=l.ss||[]).push([st.kind,Math.round((Date.now()-st.t0)/1000)]);l.ss=l.ss.slice(-20)}catch(e){}}
+function finish(){logSession();if(st.kind==='words'||st.kind==='wtest'){wordFinish();return}
   const kind=st.kind,sc=st.score,total=st.base,t=today();save.stars+=sc;let dailyFirst=false;
   if(MODE[kind])save.best[kind]=Math.max(save.best[kind]||0,Math.round(sc/total*10));
   const r0=sc/total,mk=(kind==='course'||kind==='boss')?'course':'free',aw=missionPts(mk,(kind==='recall'||kind==='due')?1:r0);let allNow=false;
   if((kind==='course'||kind==='boss')?r0>=.6:true)allNow=missionHit([mk]);
   let bmsg='';if(kind==='boss'&&st.meta){const a=st.meta.a,A=AREAS[a];if(r0>=.7){if(!save.boss[a]){save.boss[a]=today();save.stars+=10}bmsg=`${esc(CHARS[A.boss].name)}「${esc(A.win)}」<br>🎉 ${esc(A.t)} クリア! ⭐+10`+(AREAS[a+1]?`<br>つぎの エリア「${esc(AREAS[a+1].t)}」へ すすめるよ`:'<br>ぼうけん ぜんぶ クリア!')}else bmsg=`${esc(CHARS[A.boss].name)}「おしい! また きてね」<br>10もん ちゅう 7もん いじょうで クリア。まちがえた ことばを ふくしゅう してから また ちょうせん しよう!`}
   const nl=lvl(),lvup=nl>(save.blv||1);if(lvup)save.blv=nl;
-  let cmsg='';if(kind==='course'&&st.meta&&st.meta.s==='all'){const u=st.meta.u;if(r0<.6)save.adapt[u*3+1]=(save.adapt[u*3+1]||0)+1;else delete save.adapt[u*3+1];
-    if(r0>=.6){if(!save.ucl[u])save.ucl[u]=today();if(save.cp<(u+1)*3){save.cp=(u+1)*3}cmsg=`🎉 ユニット${u+1}「${UNITS[u].t}」 クリア!`+(UNITS[u+1]?(areaOf(u+1)!==areaOf(u)?`<br>つぎは ${AREAS[areaOf(u)].t}の ボス!`:`<br>つぎは「${UNITS[u+1].t}」`):'')}
+  let cmsg='';if(kind==='course'&&st.meta&&st.meta.s==='all'){const u=st.meta.u,hf=st.meta.half||0,ak=u*3+1+hf;if(r0<.6)save.adapt[ak]=(save.adapt[ak]||0)+1;else delete save.adapt[ak];save.resume=null;
+    if(r0>=.6&&!hf){if(save.cp<u*3+1)save.cp=u*3+1;cmsg=`🎉 ユニット${u+1}「${UNITS[u].t}」の はんぶん クリア!<br>つぎは のこりの ことばと かいわ`}
+    else if(r0>=.6){if(!save.ucl[u])save.ucl[u]=today();if(save.cp<(u+1)*3){save.cp=(u+1)*3}cmsg=`🎉 ユニット${u+1}「${UNITS[u].t}」 クリア!`+(UNITS[u+1]?(areaOf(u+1)!==areaOf(u)?`<br>つぎは ${AREAS[areaOf(u)].t}の ボス!`:`<br>つぎは「${UNITS[u+1].t}」`):'')}
     else cmsg=`⭐ ${total}こ ちゅう ${Math.ceil(total*.6)}こ いじょうで ユニット クリア。もういちど ちょうせん!`}
   else if(kind==='course'&&st.meta){const {u,s:sx}=st.meta,me=u*3+sx;if(r0<.6)save.adapt[me]=(save.adapt[me]||0)+1;else delete save.adapt[me];
     if(r0>=.6){if(sx===2&&!save.ucl[u])save.ucl[u]=today();if(me===save.cp){save.cp++;cmsg=sx===2?`🎉 ユニット${u+1}「${UNITS[u].t}」 クリア!`+(UNITS[u+1]?`<br>つぎは「${UNITS[u+1].t}」`:'<br>コース ぜんぶ クリア!'):`つぎの「${STEP[sx+1][0]}」が ひらいたよ`}}
@@ -909,29 +928,39 @@ function stepQs(i,sx){const u=UNITS[i],b=bNow(),qs=[],used=new Set(),add=q=>{if(
     shuffle(u.w).slice(0,2).forEach(en=>add(makeQ(wordMode(en),en)));add(makeQ('tspeak',u.d));add(makeQ('recall','d:'+u.d))}
   EASY=false;const out=qs.filter(Boolean);out.easy=easy;return out}
 // まいにちの コースは 1ユニットを 1かいで:まなぶ(カード)→ クイズ(ことば+かいわ)。6わり いじょうで ユニット クリア
-function unitQs(i){const u=UNITS[i],b=bNow(),easy=(save.adapt[i*3+1]||0)>=2;EASY=easy;const qs=[],used=new Set(),add=q=>{if(q&&!used.has(q.key)){used.add(q.key);qs.push(q)}};
+const halfW=(i,h)=>{const w=UNITS[i].w,m=Math.ceil(w.length/2);return h?w.slice(m):w.slice(0,m)};
+function unitQs(i,half){half=half||0;const u=UNITS[i],b=bNow(),easy=(save.adapt[i*3+1+half]||0)>=2,ws=halfW(i,half);EASY=easy;const qs=[],used=new Set(),add=q=>{if(q&&!used.has(q.key)){used.add(q.key);qs.push(q)}};
   const wordMode=en=>{const w=WBY[en];if(easy)return w.e?'listen':'say';const ms=[];if(w.e)ms.push('listen','see');if(b>=2){ms.push('say','meaning');if(/^[a-z]+$/.test(en)&&en.length<=(b===2?6:9))ms.push('spell')}else if(!w.e)ms.push('say');return pick(ms)};
   if(!easy)dueItems().filter(id=>!u.w.includes(id.slice(2))&&save.kn[id].l!==today()).slice(0,1).forEach(id=>add(reviewQ(id)));
-  shuffle(u.w).forEach(en=>add(makeQ(wordMode(en),en)));
-  const rw=u.w.filter(en=>WBY[en].e);if(rw.length&&!easy)add(makeQ('recall','w:'+pick(rw)));
-  add(makeQ('talk',u.d));const others=[...new Set(shuffle(UNITS.slice(0,i).map(x=>x.d).filter(d=>d!==u.d)))];if(others[0])add(makeQ('talk',others[0]));
-  add(makeQ('tspeak',u.d));
+  shuffle(ws).forEach(en=>add(makeQ(wordMode(en),en)));
+  // 1かいめ:ことばの はんぶん/2かいめ:のこりの ことば+まえの はんぶんの ふくしゅう+かいわ
+  const rw=(half?halfW(i,0):ws).filter(en=>WBY[en].e);if(rw.length&&!easy)add(makeQ('recall','w:'+pick(rw)));
+  if(half){add(makeQ('talk',u.d));const others=[...new Set(shuffle(UNITS.slice(0,i).map(x=>x.d).filter(d=>d!==u.d)))];if(others[0])add(makeQ('talk',others[0]));add(makeQ('tspeak',u.d))}
+  else{const pw=halfW(i,0).filter(en=>WBY[en].e);if(pw.length>=2)add(makeQ('simon',pick(pw.filter(en=>simonOK(WBY[en])).concat([]))||pw[0]))}
   EASY=false;const out=qs.filter(Boolean);out.easy=easy;return out}
-function startUnit(i){const qs=unitQs(i);startRound('course',qs,{u:i,s:'all',easy:qs.easy})}
+// コースの とちゅうで やめても、2日いないなら つづきから(ポイントが 2かい もらえる ことは ない)
+function saveResume(){if(st.screen!=='quiz'||st.kind!=='course'||!st.meta||st.meta.s!=='all')return;
+  save.resume={d:today(),u:st.meta.u,half:st.meta.half||0,i:st.i,score:st.score,marks:st.marks,t:Date.now()-st.t0,qs:st.qs.map(q=>[q.mode,q.item,q.sub||'',q.retry?1:0])};persist()}
+const resumeOK=(u,h)=>{const r=save.resume;return !!(r&&r.u===u&&r.half===h&&r.i>0&&(dNum(today())-dNum(r.d))<=2*864e5)};
+function resumeCourse(){const r=save.resume;const qs=r.qs.map(([m,it,sb,rt])=>{const q=makeQ(m,it,sb||undefined);if(q&&rt)q.retry=true;return q}).filter(Boolean);
+  if(!qs.length||r.i>=qs.length){save.resume=null;learnStart(r.u,true,r.half);return}
+  startRound('course',qs,{u:r.u,s:'all',half:r.half});st.i=r.i;st.score=r.score;st.marks=r.marks||[];st.base=qs.filter(q=>!q.retry).length;st.t0=Date.now()-(r.t||0);st.line='つづきから やろう!';quiz()}
+function startUnit(i,half){const qs=unitQs(i,half);startRound('course',qs,{u:i,s:'all',half:half||0,easy:qs.easy})}
 function startStep(i,sx){if(sx===0){learnStart(i);return}const qs=stepQs(i,sx);startRound('course',qs,{u:i,s:sx,easy:qs.easy})}
-function cnext(){const b=bossPending();if(b!=null){bossIntro(b);return}if(save.cp>=UNITS.length*3){course();return}learnStart(Math.floor(save.cp/3),true)}
+function cnext(){const b=bossPending();if(b!=null){bossIntro(b);return}if(save.cp>=UNITS.length*3){course();return}const u=Math.floor(save.cp/3),h=save.cp%3>=1?1:0;
+  if(resumeOK(u,h)){resumeCourse();return}learnStart(u,true,h)}
 // まなぶ: 1まいずつ きいて、まねして いう。さいごに きいて えらぶ クイズ
-function learnStart(i,whole){st={screen:'learn',u:i,i:0,whole:!!whole};bgmSync();learnCard()}
-function learnCard(){const u=UNITS[st.u],en=u.w[st.i],w=WBY[en];
-  $app.innerHTML=`<div class="quizhead"><button class="iconbtn" data-a="unitback" aria-label="やめる">✕</button><div class="prog">${u.w.map((_,k)=>`<i class="${k<st.i?'ok':k===st.i?'now':''}"></i>`).join('')}</div><span class="chip">${st.i+1}/${u.w.length}</span></div>
+function learnStart(i,whole,half){st={screen:'learn',u:i,i:0,whole:!!whole,half:half||0,words:whole?halfW(i,half||0):UNITS[i].w};bgmSync();learnCard()}
+function learnCard(){const u=UNITS[st.u],W=st.words||u.w,en=W[st.i],w=WBY[en];
+  $app.innerHTML=`<div class="quizhead"><button class="iconbtn" data-a="unitback" aria-label="やめる">✕</button><div class="prog">${W.map((_,k)=>`<i class="${k<st.i?'ok':k===st.i?'now':''}"></i>`).join('')}</div><span class="chip">${st.i+1}/${W.length}</span></div>
   <div class="talk"><div class="ch" id="buddy">${bud('happy')}</div><div class="bubble" id="bubble">${st.i?'つぎの ことば!':stageLine('learn')}</div></div>
   <div class="dict"><span class="e">${w.e||'🔤'}</span><div class="word">${esc(en)}</div><div class="ja">${esc(w.ja)}</div>
    <div class="row"><button class="pill sky" data-a="lsay">🔊 きく</button><button class="pill yellow" data-a="lslow">🐢 ゆっくり</button></div></div>
   ${SRc?'<div class="row"><button class="pill mint" id="recbtn" data-a="rec">🎤 はなす</button></div>':''}
   <div class="row"><button class="pill pink" id="saidbtn" data-a="lnext" data-label="${SRc?'いえた! つぎへ ▶':'🎤 いえた! つぎへ ▶'}" disabled>👂 きいてね</button></div><p class="note" id="heard" style="text-align:center">${SRc?'「はなす」を おして いってみてね':'こえに だして いってから すすもう'}</p>`;
   window.scrollTo(0,0);talk([[en,'en'],[en,'en',.55]],()=>lockBtn('saidbtn'))}
-function learnNext(spoke){if(st.screen!=='learn')return;if(spoke!==false)logSpeak();const u=UNITS[st.u];if(!save.learned.includes(u.w[st.i]))save.learned.push(u.w[st.i]);
-  if(st.i<u.w.length-1){st.i++;learnCard()}else{const i=st.u;persist();if(st.whole)startUnit(i);else startRound('course',stepQs(i,0),{u:i,s:0})}}
+function learnNext(spoke){if(st.screen!=='learn')return;if(spoke!==false)logSpeak();const W=st.words||UNITS[st.u].w;if(!save.learned.includes(W[st.i]))save.learned.push(W[st.i]);
+  if(st.i<W.length-1){st.i++;learnCard()}else{const i=st.u;persist();if(st.whole)startUnit(i,st.half);else startRound('course',stepQs(i,0),{u:i,s:0})}}
 
 /* ----- えほん ----- */
 function stories(){st={screen:'stories'};const b=bNow();
@@ -1047,7 +1076,7 @@ function skillPanel(){const sk={L:{n:0,ok:0},S:{n:0,ok:0},R:{n:0,ok:0},W:{n:0,ok
   const lst=a=>a.slice(0,24).map(([id])=>`<span class="kchip">${esc(itemLabel2(id))}</span>`).join('')||'<span class="note">まだ ありません</span>';
   return `<div class="panel"><h2>🧭 4つの ちから と おぼえぐあい</h2>
    <div class="tiles"><div class="tile"><b>${ms.length}</b><span>しっかり おぼえた(2つ いじょうの 形+日を あけて せいかい)</span></div><div class="tile"><b>${K.length}</b><span>であった ことば・かいわ・ぶん</span></div><div class="tile"><b>${ind}</b><span>こたえを きく まえに じぶんで いえた 回数</span></div>
-    <div class="tile"><b>${mins(today())}ふん</b><span>きょうの 学習時間(こんしゅう ${wkm}ふん・ぜんぶ ${allm}ふん)</span></div><div class="tile"><b>${hin}</b><span>ヒントを つかって せいかい(子どもには 出して いません)</span></div><div class="tile"><b>${sp}</b><span>こえに だして まねした 回数(自己申告)</span></div></div>
+    <div class="tile"><b>${(()=>{const a=Object.values(save.log).flatMap(l=>(l.ss||[]).filter(x=>x[0]==='course').map(x=>x[1])).slice(-7);return a.length?Math.round(a.reduce((x,y)=>x+y,0)/a.length/60*10)/10+'ふん':'—'})()}</b><span>コース1かいの じかん(さいきん7かいの へいきん)</span></div><div class="tile"><b>${Object.keys(save.homeMis).length}</b><span>おうちミッション(家で えいごで はなした 日)</span></div><div class="tile"><b>${mins(today())}ふん</b><span>きょうの 学習時間(こんしゅう ${wkm}ふん・ぜんぶ ${allm}ふん)</span></div><div class="tile"><b>${hin}</b><span>ヒントを つかって せいかい(子どもには 出して いません)</span></div><div class="tile"><b>${sp}</b><span>こえに だして まねした 回数(自己申告)</span></div></div>
    ${Object.entries(sk).map(([k,v])=>{const a=v.n?Math.round(v.ok/v.n*100):0;return `<div class="hbar"><span>${SK_NAME[k][0]} ${SK_NAME[k][1]}</span><div class="meter"><i style="width:${a}%"></i></div><span class="n">${v.n?a+'%':'—'}</span></div>`}).join('')}
    <p class="note">きく=きいて えらぶ・かいわ・きいて わかる/はなす=じぶんで いおう(こたえを みた あと 自分で「いえた」を おす)/よむ=いみ・えいごで なんて いう・ABC/かく=スペル・ならべかえ。正答率は 1回目で せいかいした わりあい。はなす は 音声認識が ない ため 自己申告です。</p>
    <p class="sub">🏅 しっかり おぼえた もの</p><div class="kchips">${lst(ms)}</div>
@@ -1113,9 +1142,11 @@ document.addEventListener('click',e=>{const b=e.target.closest('[data-a]');if(!b
   const H={
    gacha(){gacha()},gpull(){gpull()},shop(){shop()},room(){room()},stab(){shopTab=k;shop()},sbuy(){sbuy(k)},suse(){suse(k)},
    poke(){const c=CHARS[k];if(c){sayJa(pick(c.ok));const el=b;el.classList.remove('jump');void el.offsetWidth;el.classList.add('jump')}},
-   hint(){useHint()},introok(){if(st.screen==='quiz')next()},wordhome(){wordHome()},wsay2(){sayEn(k)},go(){go()},btalk(){btalk()},bans(){bans()},boss(){bossIntro(k)},bossgo(){startRound('boss',bossQs(+k),{a:+k})},
-   reveal(){const q=st.qs[st.i];st.revealed=true;document.getElementById('reveal').hidden=false;document.getElementById('rv1').hidden=true;document.getElementById('rv2').hidden=false;sayEn(q.answer)},
-   rcok(){if(st.lock)return;const q=st.qs[st.i];if(!st.first){onCorrect();return}if(!q.retry){rcMark(q,true);learn(q,'rok')}logSpeak();onCorrect();setBuddy('happy','じぶんで いえたね! すごい!','jump')},
+   hint(){useHint()},hmsay(){sayEn(homeMisD().q)},hmdone(){if(save.homeMis[today()])return;save.homeMis[today()]=1;save.stars+=2;logSpeak();persist();popStar('⭐');sfx.fan();home()},introok(){if(st.screen==='quiz')next()},wordhome(){wordHome()},wsay2(){sayEn(k)},go(){go()},btalk(){btalk()},bans(){bans()},boss(){bossIntro(k)},bossgo(){startRound('boss',bossQs(+k),{a:+k})},
+   rhint(){const q=st.qs[st.i];st.rhinted=true;const h=document.getElementById('rhintbox');if(h)h.hidden=false;const hb=document.getElementById('rhintbtn');if(hb)hb.disabled=true;sayEn(/\s/.test(q.answer.trim())?q.answer.split(' ')[0]:q.answer[0],.6)},
+   reveal(){const q=st.qs[st.i];st.revealed=true;document.getElementById('reveal').hidden=false;document.getElementById('rv1').hidden=true;document.getElementById('rv2').hidden=false;const ok=document.getElementById('rcokbtn');if(ok&&st.rhinted)ok.textContent='💡 ヒントで いえた!';sayEn(q.answer)},
+   rmimic(){if(st.lock)return;const q=st.qs[st.i];if(st.first&&!q.retry)learn(q,'mimic');logSpeak();onCorrect();setBuddy('happy','まねして いえたね! つぎは きく まえに いえるかな','jump')},
+   rcok(){if(st.lock)return;const q=st.qs[st.i];if(!st.first){onCorrect();return}if(!q.retry){if(st.rhinted)learn(q,'rhint');else{rcMark(q,true);learn(q,'rok')}}logSpeak();onCorrect();setBuddy('happy',st.rhinted?'ヒントで いえたね! つぎは ヒントなしで!':'じぶんで いえたね! すごい!','jump')},
    rcng(){if(st.lock)return;const q=st.qs[st.i];st.lock=true;
      // しょうじきに「まだ」と おしたら ほめる。まちがいの おとは ならさない。あとで もういちど でる
      if(st.first&&!q.retry){rcMark(q,false);addMiss(q);st.newMiss++;learn(q,'ng')}st.first=false;st.marks[st.i]='ng';
@@ -1131,16 +1162,16 @@ document.addEventListener('click',e=>{const b=e.target.closest('[data-a]');if(!b
    sound(){save.sound=!save.sound;if(!save.sound){stopTalk();stopNotes()}persist();b.outerHTML=soundBtn();bgmSync()},
    buddy(){save.buddy=k;persist();chars();talk([[CHARS[k].name,'ja'],['Hello!','en']])},
    setgrade(){save.grade=+k;persist();home()},
-   start(){startRound(k)},quit(){stopTalk();if(st.kind==='boss')course();else if(st.kind==='course'&&st.meta)unit(st.meta.u);else home()},
+   start(){startRound(k)},quit(){stopTalk();saveResume();if(st.kind==='boss')course();else if(st.kind==='course'&&st.meta)unit(st.meta.u);else home()},
    course(){course()},unit(){unit(k)},ustep(){const [i,x]=k.split(':').map(Number);startStep(i,x)},cnext(){cnext()},
-   unitback(){stopTalk();unit(st.u)},lsay(){const en=UNITS[st.u].w[st.i];sayEn(en)},lslow(){sayEn(UNITS[st.u].w[st.i],.5)},lnext(){learnNext(true)},
+   unitback(){stopTalk();unit(st.u)},lsay(){sayEn((st.words||UNITS[st.u].w)[st.i])},lslow(){sayEn((st.words||UNITS[st.u].w)[st.i],.5)},lnext(){learnNext(true)},
    menus(){const m=document.getElementById('menus');if(m){m.open=true;m.scrollIntoView({behavior:'smooth'})}},
    yen(){const v=Math.max(0,Math.min(10000,parseInt(document.getElementById('yen').value,10)||0));save.yen=v;persist();parent()},
    padj(){const t=today(),cur=save.pts[t]||0,n=Math.max(0,Math.min(DAY_CAP,cur+(+k)));if(n!==cur){save.pts[t]=n;save.adj[t]=(save.adj[t]||0)+(n-cur);const wk=wkKey();if(weekPts()>=WEEK_GOAL)save.weeks[wk]=1;else delete save.weeks[wk];persist()}parent()},
    voice(){save.voice=k;pickVoices();persist();parent();sayEn('Hello, Chiikawa! How are you?')},
    say(){if(st.screen==='quiz')playQ(false)},slow(){if(st.screen==='quiz')playQ(true)},
    said(){if(st.lock)return;logSpeak();onCorrect()},
-   rec(){if(st.screen==='learn'){recSay(UNITS[st.u].w[st.i],()=>learnNext(false));return}if(st.lock)return;const q=st.qs[st.i];recSay(q.audio,()=>{if(!st.lock)onCorrect()})},
+   rec(){if(st.screen==='learn'){recSay((st.words||UNITS[st.u].w)[st.i],()=>learnNext(false));return}if(st.lock)return;const q=st.qs[st.i];recSay(q.audio,()=>{if(!st.lock)onCorrect()})},
    ans(){answer(b)},chunk(){chunkTap(+k)},unchunk(){if(st.lock)return;st.ord.splice(+k);renderOrder()},next(){next()},
    story(){story(k)},line(){const s=st.s;document.querySelectorAll('.sline').forEach(x=>x.classList.remove('now'));document.getElementById('ln'+k).classList.add('now');sayEn(s.lines[+k],save.rate*.95)},
    readall(){readAll()},squiz(){squiz()},sans(){sAnswer(b)},
